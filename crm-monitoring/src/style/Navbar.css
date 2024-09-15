@@ -1,0 +1,58 @@
+.sidebar {
+  background-color: #343a40;
+  color: white;
+  width: 250px;
+  transition: width 0.3s ease;
+  position: fixed;
+  height: 100%;
+  overflow: auto;
+}
+
+.collapsed {
+  width: 0px; /* Atur lebar saat collapsed */
+}
+
+.sidebar-header {
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 1.5rem; /* Atur ukuran logo */
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 20px 0;
+}
+
+.menu-item {
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+}
+
+.menu-item .icon {
+  margin-right: 10px; /* Atur margin ikon */
+}
+
+.sidebar.collapsed .menu-item {
+  justify-content: center;
+  padding: 15px 0;
+}
+
+.menu-item.logout {
+  margin-top: auto;
+  background-color: #ff4d4d; /* Warna untuk logout */
+  color: white;
+}
