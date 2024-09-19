@@ -1,0 +1,4 @@
+.custom-table .ant-table-thead > tr > th {
+  background-color: #f0f5ff; /* Warna biru */
+  color: #0549cf; /* Warna teks putih */
+}

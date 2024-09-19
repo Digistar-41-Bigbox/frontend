@@ -5,52 +5,53 @@ import { Form, Button, Row, Col, Container, Image } from "react-bootstrap";
 import "../style/Login.css";
 
 function Login() {
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
   const navigate = useNavigate();
 
   const Auth = async (e) => {
     e.preventDefault();
 
-    if (password !== confPassword) {
-      setMsg("Password dan konfirmasi password tidak cocok.");
-      return;
-    }
-
     try {
-      await axios.post("http://localhost:5000/login", {
-        email: email,
-        password: password,
-      });
+      const response = await axios.post(
+        "https://smart-grouse-gladly.ngrok-free.app/api/v1/auth/login",
+        {
+          email: email,
+          password: password,
+        }
+      );
+      // Assuming response contains token in data.token
+      localStorage.setItem("accessToken", response.data.accessToken);
       navigate("/dashboard");
     } catch (error) {
       if (error.response) {
-        setMsg(error.response.data.msg); // Tampilkan pesan kesalahan
+        setMsg(error.response.data.msg); // Display error message from response
       } else {
-        setMsg("Terjadi kesalahan. Silakan coba lagi."); // Pesan kesalahan umum
+        setMsg("An error occurred. Please try again."); // General error message
       }
     }
   };
+
   return (
     <Container fluid className="registration-page">
       <Row className="h-100">
-        {/* Bagian kiri */}
+        {/* Left Side */}
         <Col
           md={6}
           className="left-side d-flex flex-column justify-content-center align-items-center"
         >
           <Image
-            src="src/assets/Logo.png" // Sesuaikan dengan path gambar Anda
+            src="src/assets/Logo.png"
             className="img-fluid mb-3"
             alt="BigSocial"
-            style={{ maxWidth: "200px" }} // Atur ukuran gambar
+            style={{ maxWidth: "200px" }}
           />
           <Image
-            src="src/assets/loginImg.png" // Sesuaikan dengan path gambar Anda
+            src="src/assets/loginImg.png"
             className="img-fluid mb-3"
             alt="BigSocial"
-            style={{ maxWidth: "400px" }} // Atur ukuran gambar
+            style={{ maxWidth: "400px" }}
           />
           <h2>Welcome to BigSocial</h2>
           <p className="text-center">
@@ -60,7 +61,7 @@ function Login() {
           </p>
         </Col>
 
-        {/* Bagian kanan */}
+        {/* Right Side */}
         <Col
           md={6}
           className="d-flex justify-content-center align-items-center"
@@ -90,22 +91,21 @@ function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </Form.Group>
-              <Form.Group controlId="formRememberMe" className="mb-3">
+              <Form.Group
+                controlId="formRememberMe"
+                className="mb-3 m-1 d-flex justify-content-between"
+              >
                 <Form.Check type="checkbox" label="Remember me" />
+                <a className="text-decoration-none" href="/forgot-password">
+                  Forgot password?
+                </a>
               </Form.Group>
-              <Button variant="primary" type="submit" className="w-100">
-                Register
+              <Button variant="primary" type="submit" className="w-100 mt-2">
+                Sign In
               </Button>
-              <div className="d-flex justify-content-between mt-3">
-                <a href="/forgot-password">Forgot password?</a>
-                <a href="/register">Register</a>
-              </div>
-              <div className="recaptcha mt-4">
-                <Form.Check type="checkbox" label="I'm not a robot" />
-              </div>
               {msg && (
                 <div className="error-message mt-3 text-danger">{msg}</div>
-              )}{" "}
+              )}
             </Form>
           </div>
         </Col>

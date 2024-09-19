@@ -1,0 +1,100 @@
+/* Sidebar and Dashboard Styling */
+
+/* Logo styling */
+.logo-container {
+  height: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 16px;
+}
+
+.logo-full {
+  width: 150px;
+  height: auto;
+}
+
+.logo-collapsed {
+  width: 55px;
+  height: auto;
+}
+
+/* Profile section styling */
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  border-top: 1px solid #f0f0f0;
+  position: absolute;
+  bottom: 0;
+  width: 100%; /* Memastikan profil mengambil seluruh lebar sidebar */
+}
+
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #1890ff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.profile-name {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #000;
+}
+
+.profile-email {
+  font-size: 14px;
+  color: #888;
+}
+
+.site-layout-background {
+  background: #fff;
+}
+
+.welcome-text {
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+}
+
+/* Sidebar menu and hover effects */
+.ant-menu-item {
+  font-size: 16px;
+}
+
+.ant-menu-item:hover {
+  background-color: #e6f7ff; /* Hover effect */
+}
+
+.ant-menu-item-selected {
+  background-color: #1890ff; /* Selected item background */
+  color: #fff;
+}
+
+.ant-menu-dark .ant-menu-item-selected {
+  background-color: #1890ff;
+}
+
+/* Handle collapsed sidebar state */
+.ant-layout-sider-collapsed .profile-name,
+.ant-layout-sider-collapsed .profile-email {
+  display: none;
+}
+
+.ant-layout-sider:not(.ant-layout-sider-collapsed) .profile-avatar {
+  margin-bottom: 10px;
+}
+
+/* Adjust when sidebar is collapsed */
+.ant-layout-sider-collapsed .profile-section {
+  justify-content: center;
+}
