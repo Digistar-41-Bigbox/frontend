@@ -31,17 +31,18 @@
   width: 100%; /* Memastikan profil mengambil seluruh lebar sidebar */
 }
 
+/* Profile Avatar Styling */
 .profile-avatar {
-  width: 40px;
+  width: 40px; /* Adjusted for a better appearance */
   height: 40px;
+  background-color: #ddd;
   border-radius: 50%;
-  background-color: #1890ff;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
+  justify-content: center; /* Centers content horizontally */
+  align-items: center; /* Centers content vertically */
+  font-size: 1.5rem;
+  color: #333;
+  margin: 0 auto; /* Ensures the avatar stays centered horizontally */
 }
 
 .profile-name {

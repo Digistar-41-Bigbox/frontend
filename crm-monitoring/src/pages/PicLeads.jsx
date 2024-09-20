@@ -3,8 +3,8 @@ import {
   Layout,
   Table,
   Button,
-  Tag,
   Space,
+  Select,
   Modal,
   Form,
   Input,
@@ -18,11 +18,11 @@ import {
   DownloadOutlined,
   DeleteOutlined,
   EditOutlined,
+  UserAddOutlined,
 } from "@ant-design/icons";
 import "../style/PicLeads.css";
 import SidebarMenu from "../components/SidebarMenu";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Pagination } from "react-bootstrap";
 
 const { Header, Sider, Content } = Layout;
 
@@ -52,16 +52,25 @@ const PicLeads = ({ name }) => {
 
   const [collapsed, setCollapsed] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isManualInput, setIsManualInput] = useState(true);
   const [editingKey, setEditingKey] = useState("");
   const [form] = Form.useForm();
+  const [isManualInput, setIsManualInput] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const picMembers = [
+    { value: "Shinta Dewi", label: "Shinta Dewi" },
+    { value: "Agunawan", label: "Agunawan" },
+    { value: "Rina Sari", label: "Rina Sari" },
+    // Add more members as needed
+  ];
 
   const showAddModal = () => {
     setIsModalVisible(true);
     form.resetFields();
+    form.setFieldsValue({ inputMethod: "Manual" });
     setEditingKey("");
+    setIsManualInput(true);
   };
 
   const handleCancel = () => {
@@ -82,7 +91,7 @@ const PicLeads = ({ name }) => {
             lead.key === editingKey ? { ...lead, ...values } : lead
           );
           setLeadsData(updatedData);
-        } else {
+        } else if (isManualInput) {
           // Add new lead
           const newKey = (leadsData.length + 1).toString();
           setLeadsData([...leadsData, { ...values, key: newKey }]);
@@ -98,10 +107,33 @@ const PicLeads = ({ name }) => {
     setIsModalVisible(true);
     form.setFieldsValue(record);
     setEditingKey(record.key);
+    setIsManualInput(true);
   };
 
   const deleteLead = (key) => {
-    setLeadsData(leadsData.filter((item) => item.key !== key));
+    confirm({
+      title: "Hapus Data Leads ini?",
+      content: "Data yang telah terhapus tidak dapat dipulihkan.",
+      okText: "Ya",
+      okType: "danger",
+      cancelText: "Tidak",
+      icon: <DeleteOutlined style={{ color: "red" }} />,
+      okButtonProps: {
+        style: {
+          backgroundColor: "#F54A45",
+          color: "#FFFFFF",
+        },
+      },
+      cancelButtonProps: {
+        style: {
+          backgroundColor: "#FDDBDA",
+          color: "#F54A45",
+        },
+      },
+      onOk: () => {
+        setLeadsData(leadsData.filter((item) => item.key !== key));
+      },
+    });
   };
 
   const handlePageChange = (page) => {
@@ -159,13 +191,13 @@ const PicLeads = ({ name }) => {
             type="text"
             icon={<EditOutlined />}
             onClick={() => editLead(record)}
-          ></Button>
+          />
           <Button
             type="text"
             danger
             icon={<DeleteOutlined />}
             onClick={() => deleteLead(record.key)}
-          ></Button>
+          />
         </Space>
       ),
     },
@@ -188,9 +220,7 @@ const PicLeads = ({ name }) => {
         trigger={null}
         collapsible
         collapsed={collapsed}
-        style={{
-          background: "#fff",
-        }}
+        style={{ background: "#fff" }}
       >
         <SidebarMenu collapsed={collapsed} name={name} />
       </Sider>
@@ -199,7 +229,7 @@ const PicLeads = ({ name }) => {
       <Layout className="site-layout">
         {/* Header with Toggle Button */}
         <Header
-          className="site-layout-background"
+          className="site-layout-background "
           style={{
             padding: "0 20px",
             display: "flex",
@@ -211,11 +241,7 @@ const PicLeads = ({ name }) => {
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={toggleSidebar}
-            style={{
-              fontSize: "18px",
-              width: 64,
-              height: 64,
-            }}
+            style={{ fontSize: "18px", width: 64, height: 64 }}
           />
           <span className="welcome-text">Welcome back, {name}!</span>
         </Header>
@@ -223,23 +249,18 @@ const PicLeads = ({ name }) => {
         {/* Main Content */}
         <Content
           className="site-layout-background"
-          style={{
-            margin: "24px 16px",
-            padding: 24,
-            minHeight: 280,
-          }}
+          style={{ margin: "24px 16px", padding: 24, minHeight: 280 }}
         >
           <Table
             rowSelection={rowSelection}
             columns={columns}
             dataSource={currentData}
             pagination={false}
-            rowKey="key"
-            style={{ marginTop: 0 }}
             className="custom-table"
+            rowKey="key"
             title={() => (
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <Input.Search placeholder="Cari" className="me-3 " />
+                <Input.Search placeholder="Cari" className="me-3" />
                 <Space>
                   <Button icon={<DownloadOutlined />}>Export Data</Button>
                   <Button
@@ -258,30 +279,54 @@ const PicLeads = ({ name }) => {
           <Row className="mt-4" justify="space-between" align="middle">
             {/* Pagination on the left */}
             <Col>
-              <Pagination>
-                <Pagination.Prev
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                />
-                {[...Array(totalPages)].map((_, index) => (
-                  <Pagination.Item
-                    key={index + 1}
-                    active={index + 1 === currentPage}
-                    onClick={() => handlePageChange(index + 1)}
-                    style={
-                      index + 1 === currentPage
-                        ? { backgroundColor: "#0549CF", color: "#fff" }
-                        : {}
-                    }
+              <nav aria-label="Page navigation example">
+                <ul className="pagination">
+                  <li
+                    className={`page-item ${
+                      currentPage === 1 ? "disabled" : ""
+                    }`}
                   >
-                    {index + 1}
-                  </Pagination.Item>
-                ))}
-                <Pagination.Next
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                />
-              </Pagination>
+                    <a
+                      className="page-link"
+                      href="#"
+                      aria-label="Previous"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                    >
+                      <span aria-hidden="true">&laquo;</span>
+                    </a>
+                  </li>
+                  {[...Array(totalPages)].map((_, index) => (
+                    <li
+                      key={index + 1}
+                      className={`page-item ${
+                        index + 1 === currentPage ? "active" : ""
+                      }`}
+                    >
+                      <a
+                        className="page-link"
+                        href="#"
+                        onClick={() => handlePageChange(index + 1)}
+                      >
+                        {index + 1}
+                      </a>
+                    </li>
+                  ))}
+                  <li
+                    className={`page-item ${
+                      currentPage === totalPages ? "disabled" : ""
+                    }`}
+                  >
+                    <a
+                      className="page-link"
+                      href="#"
+                      aria-label="Next"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                    >
+                      <span aria-hidden="true">&raquo;</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
             </Col>
 
             {/* Show total records on the right */}
@@ -315,28 +360,78 @@ const PicLeads = ({ name }) => {
             onClick={handleOk}
             className="custom-btn-ok"
             style={{ backgroundColor: "#0549CF" }}
-            disabled={!isManualInput} // Disable button if input method is XLS
+            disabled={!isManualInput}
           >
             {editingKey ? "Simpan" : "Tambah"}
           </Button>,
         ]}
       >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="pic"
-            label="Nama PIC Leads"
-            rules={[{ required: true, message: "Please input PIC Leads!" }]}
+        <div className="container">
+          <div className="row align-items-center">
+            <div className="col-12">
+              <div
+                className={`d-flex justify-content-center align-items-center rounded-circle`}
+                style={{
+                  width: "50px",
+                  height: "50px",
+                  backgroundColor: editingKey ? "#F0F5FF" : "#F0F5FF",
+                }}
+              >
+                {editingKey ? (
+                  <EditOutlined
+                    style={{ fontSize: "26px", color: "#0549CF" }}
+                  />
+                ) : (
+                  <UserAddOutlined
+                    style={{ fontSize: "26px", color: "#0549CF" }}
+                  />
+                )}
+              </div>
+            </div>
+            <div className="col-12 mt-3">
+              <h5>{editingKey ? "Edit Lead" : "Tambah Data Lead"}</h5>
+              <p style={{ fontSize: "16px" }}>
+                {editingKey
+                  ? "Lengkapi informasi di bawah untuk mengubah lead."
+                  : "Lengkapi informasi di bawah untuk menambahkan lead."}
+              </p>
+            </div>
+          </div>
+
+          <Form
+            form={form}
+            layout="vertical"
+            initialValues={{ remember: true }}
           >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[{ required: true, message: "Please input Email!" }]}
-          >
-            <Input />
-          </Form.Item>
-        </Form>
+            <Form.Item
+              name="pic"
+              label="Nama PIC Leads"
+              rules={[{ required: true, message: "Please input PIC Leads!" }]}
+            >
+              <Select placeholder="Pilih PIC Leads">
+                {picMembers.map((member) => (
+                  <Select.Option key={member.value} value={member.value}>
+                    {member.label}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[{ required: true, message: "Please input Email!" }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              label="Nomor Telepon"
+              name="phone"
+              rules={[{ required: true, message: "Masukkan nomor telepon" }]}
+            >
+              <Input />
+            </Form.Item>
+          </Form>
+        </div>
       </Modal>
     </Layout>
   );

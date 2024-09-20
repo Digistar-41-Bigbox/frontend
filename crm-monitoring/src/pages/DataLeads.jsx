@@ -24,7 +24,7 @@ import {
 import "../style/DataLeads.css";
 import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
 import SidebarMenu from "../components/SidebarMenu"; // Panggil Sidebar seperti di dashboard.jsx
-import { Pagination } from "react-bootstrap";
+import { Pagination as BootstrapPagination } from "react-bootstrap";
 
 const { Header, Sider, Content } = Layout;
 const { confirm } = Modal;
@@ -38,6 +38,7 @@ const DataLeads = ({ name }) => {
       company: "Perusahaan 1",
       email: "perusahaan@gmail.com",
       phone: "08123456789",
+      notes: "Saya minta kamu lebih rajin",
     },
     {
       key: "2",
@@ -46,6 +47,7 @@ const DataLeads = ({ name }) => {
       company: "Perusahaan 2",
       email: "perusahaan2@gmail.com",
       phone: "08123456790",
+      notes: "Saya minta kamu lebih cepat",
     },
   ]);
   const [collapsed, setCollapsed] = useState(false);
@@ -58,12 +60,19 @@ const DataLeads = ({ name }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const picMembers = [
+    { value: "Shinta Dewi", label: "Shinta Dewi" },
+    { value: "Agunawan", label: "Agunawan" },
+    { value: "Rina Sari", label: "Rina Sari" },
+    // Add more members as needed
+  ];
+
   const showAddModal = () => {
     setIsModalVisible(true);
     form.resetFields();
-    form.setFieldsValue({ inputMethod: "Manual" }); // Set default value for input method
+    form.setFieldsValue({ inputMethod: "Manual" });
     setEditingKey("");
-    setIsManualInput(true); // Ensure manual input is selected by default
+    setIsManualInput(true);
   };
 
   const toggleSidebar = () => {
@@ -100,7 +109,7 @@ const DataLeads = ({ name }) => {
     setIsModalVisible(true);
     form.setFieldsValue(record);
     setEditingKey(record.key);
-    setIsManualInput(true); // Ensure manual input is selected by default when editing
+    setIsManualInput(true);
   };
 
   const deleteLead = (key) => {
@@ -159,9 +168,19 @@ const DataLeads = ({ name }) => {
       ),
     },
     {
+      title: "Jenis Perusahaan",
+      dataIndex: "jenis",
+      key: "jenis",
+    },
+    {
       title: "Nama Instansi/Lembaga",
       dataIndex: "company",
       key: "company",
+    },
+    {
+      title: "Nama Kontak",
+      dataIndex: "nama_kontak",
+      key: "nama_kontak",
     },
     {
       title: "Email",
@@ -172,6 +191,11 @@ const DataLeads = ({ name }) => {
       title: "Nomor Telepon",
       dataIndex: "phone",
       key: "phone",
+    },
+    {
+      title: "Notes",
+      dataIndex: "notes",
+      key: "notes",
     },
     {
       title: "Action",
@@ -251,7 +275,7 @@ const DataLeads = ({ name }) => {
       <Layout className="site-layout">
         {/* Header with Toggle Button */}
         <Header
-          className="site-layout-background"
+          className="site-layout-background "
           style={{
             padding: "0 20px",
             display: "flex",
@@ -308,42 +332,62 @@ const DataLeads = ({ name }) => {
 
           {/* Custom Pagination with Total Records */}
           <Row className="mt-4" justify="space-between" align="middle">
-            {/* Pagination on the left */}
             <Col>
-              <Pagination>
-                <Pagination.Prev
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                />
-                {[...Array(totalPages)].map((_, index) => (
-                  <Pagination.Item
-                    key={index + 1}
-                    active={index + 1 === currentPage}
-                    onClick={() => handlePageChange(index + 1)}
-                    style={
-                      index + 1 === currentPage
-                        ? { backgroundColor: "#0549CF", color: "#fff" }
-                        : {}
-                    }
+              <nav aria-label="Page navigation example">
+                <ul className="pagination">
+                  <li
+                    className={`page-item ${
+                      currentPage === 1 ? "disabled" : ""
+                    }`}
                   >
-                    {index + 1}
-                  </Pagination.Item>
-                ))}
-                <Pagination.Next
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                />
-              </Pagination>
+                    <a
+                      className="page-link"
+                      href="#"
+                      aria-label="Previous"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                    >
+                      <span aria-hidden="true">&laquo;</span>
+                    </a>
+                  </li>
+                  {[...Array(totalPages)].map((_, index) => (
+                    <li
+                      key={index + 1}
+                      className={`page-item ${
+                        index + 1 === currentPage ? "active" : ""
+                      }`}
+                    >
+                      <a
+                        className="page-link"
+                        href="#"
+                        onClick={() => handlePageChange(index + 1)}
+                      >
+                        {index + 1}
+                      </a>
+                    </li>
+                  ))}
+                  <li
+                    className={`page-item ${
+                      currentPage === totalPages ? "disabled" : ""
+                    }`}
+                  >
+                    <a
+                      className="page-link"
+                      href="#"
+                      aria-label="Next"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                    >
+                      <span aria-hidden="true">&raquo;</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
             </Col>
-
-            {/* Show total records on the right */}
-            <Col>
-              <div>
-                Displaying {itemsPerPage * (currentPage - 1) + 1} -{" "}
-                {Math.min(itemsPerPage * currentPage, leadsData.length)} of{" "}
-                {leadsData.length} records
-              </div>
-            </Col>
+            {/* Show total records */}
+            <div>
+              Displaying {itemsPerPage * (currentPage - 1) + 1} -{" "}
+              {Math.min(itemsPerPage * currentPage, leadsData.length)} of{" "}
+              {leadsData.length} records
+            </div>
           </Row>
         </Content>
       </Layout>
@@ -410,24 +454,33 @@ const DataLeads = ({ name }) => {
             layout="vertical"
             initialValues={{ remember: true }}
           >
-            <Form.Item label="Input Data">
-              <Select
-                value={isManualInput ? "Manual" : "XLS"}
-                onChange={(value) => setIsManualInput(value === "Manual")}
-              >
-                <Select.Option value="Manual">Manual</Select.Option>
-                <Select.Option value="XLS">XLS</Select.Option>
-              </Select>
-            </Form.Item>
+            {/* Conditionally render the input method dropdown */}
+            {!editingKey && ( // Only show dropdown when not editing
+              <Form.Item label="Input Data">
+                <Select
+                  value={isManualInput ? "Manual" : "XLS"}
+                  onChange={(value) => setIsManualInput(value === "Manual")}
+                >
+                  <Select.Option value="Manual">Manual</Select.Option>
+                  <Select.Option value="XLS">XLS</Select.Option>
+                </Select>
+              </Form.Item>
+            )}
 
             {isManualInput ? (
               <>
                 <Form.Item
                   label="PIC Leads"
                   name="pic"
-                  rules={[{ required: true, message: "Masukkan nama PIC" }]}
+                  rules={[{ required: true, message: "Pilih PIC Leads" }]}
                 >
-                  <Input />
+                  <Select placeholder="Pilih PIC Leads">
+                    {picMembers.map((member) => (
+                      <Select.Option key={member.value} value={member.value}>
+                        {member.label}
+                      </Select.Option>
+                    ))}
+                  </Select>
                 </Form.Item>
 
                 <Form.Item
@@ -443,11 +496,34 @@ const DataLeads = ({ name }) => {
                 </Form.Item>
 
                 <Form.Item
+                  label="Jenis Perusahaan"
+                  name="jenis"
+                  rules={[
+                    { required: true, message: "Pilih jenis perusahaan" },
+                  ]}
+                >
+                  <Select placeholder="Pilih Jenis Perusahaan">
+                    <Select.Option value="Government">Government</Select.Option>
+                    <Select.Option value="Local Company">
+                      Local Company
+                    </Select.Option>
+                  </Select>
+                </Form.Item>
+
+                <Form.Item
                   label="Nama Instansi/Lembaga"
                   name="company"
                   rules={[
                     { required: true, message: "Masukkan nama perusahaan" },
                   ]}
+                >
+                  <Input />
+                </Form.Item>
+
+                <Form.Item
+                  label="Nama Kontak"
+                  name="nama_kontak"
+                  rules={[{ required: true, message: "Masukkan nama kontak" }]}
                 >
                   <Input />
                 </Form.Item>
@@ -469,6 +545,10 @@ const DataLeads = ({ name }) => {
                 >
                   <Input />
                 </Form.Item>
+
+                <Form.Item label="Notes" name="notes">
+                  <Input.TextArea rows={4} />
+                </Form.Item>
               </>
             ) : (
               <div
@@ -476,7 +556,7 @@ const DataLeads = ({ name }) => {
                 style={{
                   border: "2px dashed #d9d9d9",
                   padding: "20px",
-                  height: "200px", // Atur tinggi agar konten berada di tengah
+                  height: "200px",
                   textAlign: "center",
                 }}
               >
