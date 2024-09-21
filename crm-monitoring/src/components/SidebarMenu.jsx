@@ -6,40 +6,25 @@ import {
   LogoutOutlined,
   DatabaseOutlined,
 } from "@ant-design/icons";
-import axios from "axios"; // Import axios for API requests
 import { useNavigate, useLocation } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css"; // Ensure Bootstrap is imported
-import "../style/sidebar.css"; // Custom CSS for additional styling
+import { useAuth } from "../context/AuthContext";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "../style/sidebar.css";
 
 const SidebarMenu = ({ collapsed, name = "User" }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { userRole, logout, userInfo = { name: "", email: "" } } = useAuth(); // Get userRole from context
 
-  // Function to handle logout API call
-  const handleLogout = async () => {
-    try {
-      // Call the API to log the user out
-      await axios.delete(
-        "https://smart-grouse-gladly.ngrok-free.app/api/v1/auth/logout"
-      );
-
-      // Optionally, you can also clear any stored authentication tokens here
-      localStorage.removeItem("accessToken");
-
-      // Navigate to the login page after successful logout
-      navigate("/");
-    } catch (error) {
-      console.error("Error during logout:", error);
-      // Handle errors, show a message if needed
-    }
-  };
-
+  // Define menu items
   const menuItems = [
+    // Dashboard for user and admin
     {
-      key: "/dashboard",
+      key: userRole === "admin" ? "/admin-dashboard" : "/user-dashboard",
       icon: <HomeOutlined />,
       label: "Dashboard",
-      onClick: () => navigate("/dashboard"),
+      onClick: () =>
+        navigate(userRole === "admin" ? "/admin-dashboard" : "/user-dashboard"),
     },
     {
       key: "/data-leads",
@@ -47,20 +32,26 @@ const SidebarMenu = ({ collapsed, name = "User" }) => {
       label: "Data Leads",
       onClick: () => navigate("/data-leads"),
     },
-    {
-      key: "/pic-leads",
-      icon: <UserOutlined />,
-      label: "PIC Leads",
-      onClick: () => navigate("/pic-leads"),
-    },
+    ...(userRole === "admin"
+      ? [
+          {
+            key: "/pic-leads",
+            icon: <UserOutlined />,
+            label: "PIC Leads",
+            onClick: () => navigate("/pic-leads"),
+          },
+        ]
+      : []),
     {
       key: "/logout",
       icon: <LogoutOutlined />,
       label: "Logout",
-      onClick: handleLogout, // Call the logout handler function
+      onClick: () => {
+        logout();
+        navigate("/");
+      },
     },
   ];
-
   return (
     <div
       className="d-flex flex-column vh-100 position-fixed"
@@ -78,7 +69,7 @@ const SidebarMenu = ({ collapsed, name = "User" }) => {
           <img
             src="src/assets/LogoHalf.png"
             alt="Logo"
-            className="logo-collapsed img-fluid"
+            className="logo-collapsed "
           />
         )}
       </div>
@@ -94,12 +85,17 @@ const SidebarMenu = ({ collapsed, name = "User" }) => {
       {/* Profile Section */}
       <div className="mt-auto p-3">
         <div className="profile-avatar d-flex align-items-center justify-content-center">
-          <span>{name ? name.charAt(0) : ""}</span>
+          <span>{userInfo?.name ? userInfo.name.charAt(0) : "U"}</span>
         </div>
         {!collapsed && (
           <>
-            <div className="profile-name text-center">{name}</div>
-            <div className="profile-email text-center">kinoooy@gmail.com</div>
+            <div className="profile-name text-center">
+              {userInfo?.name || "User"}
+            </div>
+            <div className="profile-email text-center">
+              {" "}
+              {userInfo?.email || "user@example.com"}
+            </div>
           </>
         )}
       </div>

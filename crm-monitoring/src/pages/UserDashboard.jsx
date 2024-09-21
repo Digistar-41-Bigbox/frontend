@@ -9,10 +9,11 @@ import CustomLineChart from "../components/LineChart"; // Import the new LineCha
 
 const { Header, Sider, Content } = Layout;
 
-const Dashboard = () => {
+const UserDashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [name, setName] = useState("");
   const [token, setToken] = useState("");
+  axios.defaults.withCredentials = true;
 
   useEffect(() => {
     refreshToken();
@@ -21,7 +22,7 @@ const Dashboard = () => {
   const refreshToken = async () => {
     try {
       const response = await axios.get(
-        "https://smart-grouse-gladly.ngrok-free.app/api/v1/auth/token"
+        "https://backend-dev-eosin.vercel.app/api/v1/auth/token"
       );
       console.log("test");
       console.log(response.data.accessToken);
@@ -189,4 +190,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default UserDashboard;
