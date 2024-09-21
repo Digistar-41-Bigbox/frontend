@@ -13,9 +13,11 @@ const AdminDashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [name, setName] = useState("");
   const [token, setToken] = useState("");
+  const [leadData, setLeadData] = useState([]); // State to hold lead data
 
   useEffect(() => {
     refreshToken();
+    fetchLatestLeads(); // Fetch latest leads on component mount
   }, []);
 
   const refreshToken = async () => {
@@ -23,13 +25,20 @@ const AdminDashboard = () => {
       const response = await axios.get(
         "https://backend-dev-eosin.vercel.app/api/v1/auth/token"
       );
-      console.log("test");
-      console.log(response.data.accessToken);
       setToken(response.data.accessToken);
       const decoded = jwtDecode(response.data.accessToken); // Using named export
       setName(decoded.name); // Setting the name from decoded JWT
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const fetchLatestLeads = async () => {
+    try {
+      const response = await axios.get("https://backend-dev-eosin.vercel.app/api/v1/lead/get-lead-latest");
+      setLeadData(response.data.data); // Set the fetched lead data
+    } catch (error) {
+      console.error("Error fetching latest leads:", error);
     }
   };
 
@@ -98,38 +107,26 @@ const AdminDashboard = () => {
                   <div className="card-body">
                     <table className="table table-borderless">
                       <tbody>
-                        <tr>
-                          <td>
-                            <span className="badge bg-warning">Warm</span>
-                          </td>
-                          <td>Perusahaan 1</td>
-                          <td>Perusahaan1@gmail.com</td>
-                          <td>08123456789</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <span className="badge bg-info">Cool</span>
-                          </td>
-                          <td>Perusahaan 1</td>
-                          <td>Perusahaan1@gmail.com</td>
-                          <td>08123456789</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <span className="badge bg-warning">Warm</span>
-                          </td>
-                          <td>Perusahaan 1</td>
-                          <td>Perusahaan1@gmail.com</td>
-                          <td>08123456789</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <span className="badge bg-danger">Hot</span>
-                          </td>
-                          <td>Perusahaan 1</td>
-                          <td>Perusahaan1@gmail.com</td>
-                          <td>08123456789</td>
-                        </tr>
+                        {leadData.map((lead, index) => (
+                          <tr key={index}>
+                            <td>
+                              <span
+                                className={`badge ${
+                                  lead.name_status === "Hot"
+                                    ? "bg-danger"
+                                    : lead.name_status === "Warm"
+                                    ? "bg-warning"
+                                    : "bg-info"
+                                }`}
+                              >
+                                {lead.name_status}
+                              </span>
+                            </td>
+                            <td>{lead.nama_instansi}</td>
+                            <td>{lead.email}</td>
+                            <td>{lead.no_hp}</td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                     <a href="#" className="card-link">

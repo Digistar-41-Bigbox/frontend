@@ -55,7 +55,12 @@ const SidebarMenu = ({ collapsed, name = "User" }) => {
   return (
     <div
       className="d-flex flex-column vh-100 position-fixed"
-      style={{ width: collapsed ? "80px" : "250px" }}
+      style={{
+        width: collapsed ? "80px" : "210px",
+        transition: "width 0.3s ease",
+        overflow: "hidden",
+        zIndex: 1000,
+      }}
     >
       {/* Logo Section */}
       <div className="logo-container p-3">

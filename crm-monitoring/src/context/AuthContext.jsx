@@ -73,7 +73,6 @@ export const AuthProvider = ({ children }) => {
       await axios.delete(
         "https://backend-dev-eosin.vercel.app/api/v1/auth/logout"
       );
-
       // Hapus token dan role dari localStorage
       setToken(null);
       setUserRole(null);
