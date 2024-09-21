@@ -66,9 +66,17 @@
   color: #000;
 }
 
+.ant-menu-item {
+  white-space: nowrap; /* Pastikan tidak ada line-break */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%; /* Memastikan lebarnya sesuai dengan sidebar */
+}
+
 /* Sidebar menu and hover effects */
 .ant-menu-item {
   font-size: 16px;
+  max-width: 100%;
 }
 
 .ant-menu-item:hover {

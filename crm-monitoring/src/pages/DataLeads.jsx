@@ -22,9 +22,9 @@ import {
   UserAddOutlined,
 } from "@ant-design/icons";
 import "../style/DataLeads.css";
-import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
-import SidebarMenu from "../components/SidebarMenu"; // Panggil Sidebar seperti di dashboard.jsx
-import { Pagination as BootstrapPagination } from "react-bootstrap";
+import { useAuth } from "../context/AuthContext";
+import "bootstrap/dist/css/bootstrap.min.css";
+import SidebarMenu from "../components/SidebarMenu";
 
 const { Header, Sider, Content } = Layout;
 const { confirm } = Modal;
@@ -59,6 +59,7 @@ const DataLeads = ({ name }) => {
   const [setIsUploading] = useState(false); // State untuk melacak status upload
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const { userInfo = { name: "" } } = useAuth();
 
   const picMembers = [
     { value: "Shinta Dewi", label: "Shinta Dewi" },
@@ -274,34 +275,36 @@ const DataLeads = ({ name }) => {
       {/* Layout */}
       <Layout className="site-layout">
         {/* Header with Toggle Button */}
-        <Header
-          className="site-layout-background "
-          style={{
-            padding: "0 20px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={toggleSidebar}
-            style={{
-              fontSize: "18px",
-              width: 64,
-              height: 64,
-            }}
-          />
-          <span className="welcome-text">Welcome back, {name}!</span>
+        <Header className="bg-light sticky-top px-4 shadow-sm">
+          <div className="d-flex align-items-center">
+            <Button
+              type="text"
+              className="btn btn-link"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={toggleSidebar}
+              style={{
+                fontSize: "18px",
+                width: "64px",
+                height: "64px",
+              }}
+            />
+
+            <div className="ms-3 d-flex flex-column justify-content-center">
+              {/* Nama pengguna */}
+              <h1 className="h4 fw-semibold mb-0">
+                Welcome back, {userInfo?.name || "John Doe"}!
+              </h1>
+            </div>
+          </div>
         </Header>
 
         {/* Main Content */}
         <Content
-          className="site-layout-background"
+          className={`site-layout-background ${
+            collapsed ? "content-collapsed" : "content-expanded"
+          }`}
           style={{
-            margin: "24px 16px",
-            padding: 24,
+            padding: 0,
             minHeight: 280,
           }}
         >
@@ -311,7 +314,7 @@ const DataLeads = ({ name }) => {
             dataSource={currentData}
             pagination={false}
             rowKey="key"
-            style={{ marginTop: 0 }}
+            style={{ marginTop: 10 }}
             className="custom-table"
             title={() => (
               <div style={{ display: "flex", justifyContent: "space-between" }}>

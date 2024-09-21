@@ -5,7 +5,9 @@ import { Layout, Button } from "antd";
 import { MenuUnfoldOutlined, MenuFoldOutlined } from "@ant-design/icons";
 import SidebarMenu from "../components/SidebarMenu";
 import PieChartWithCenterLabel from "../components/PieChartWithCenterLabel";
-import CustomLineChart from "../components/LineChart"; // Import the new LineChart component
+import CustomLineChart from "../components/LineChart";
+import { useAuth } from "../context/AuthContext";
+import "../style/Dashboard.css";
 
 const { Header, Sider, Content } = Layout;
 
@@ -13,6 +15,7 @@ const AdminDashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [name, setName] = useState("");
   const [token, setToken] = useState("");
+  const { userRole, userInfo = { name: "" } } = useAuth();
 
   useEffect(() => {
     refreshToken();
@@ -36,6 +39,7 @@ const AdminDashboard = () => {
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
   };
+  console.log(userRole);
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -54,39 +58,49 @@ const AdminDashboard = () => {
       {/* Layout */}
       <Layout className="site-layout">
         {/* Header with Toggle Button */}
-        <Header
-          className="site-layout-background sticky-top"
-          style={{
-            padding: "0 20px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={toggleSidebar}
-            style={{
-              fontSize: "18px",
-              width: 64,
-              height: 64,
-            }}
-          />
-          <span className="welcome-text">Welcome back, {name}!</span>
+        <Header className="bg-light sticky-top px-4 shadow-sm">
+          <div className="d-flex align-items-center">
+            <Button
+              type="text"
+              className="btn btn-link"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={toggleSidebar}
+              style={{
+                fontSize: "18px",
+                width: "64px",
+                height: "64px",
+              }}
+            />
+
+            <div className="ms-3 d-flex flex-column justify-content-center">
+              {/* Nama pengguna */}
+              <h1 className="h4 fw-semibold mb-0">
+                Welcome back, {userInfo?.name || "John Doe"}!
+              </h1>
+            </div>
+          </div>
         </Header>
 
         {/* Main Content */}
         <Content
-          className="site-layout-background"
+          className={`site-layout-background ${
+            collapsed ? "content-collapsed" : "content-expanded"
+          }`}
           style={{
-            margin: "24px 16px",
             padding: 0,
             minHeight: 280,
           }}
         >
           {/* Main dashboard content */}
-          <div className="container my-4">
+          <div className="container m-auto">
+            <p
+              className="text-muted fw-semibold ms-2 mt-4 mb-3"
+              style={{ fontSize: "20px" }}
+            >
+              {userRole === "dmin"
+                ? "Dashboard Manager Leads."
+                : "Dashboard PIC Leads."}
+            </p>
             {/* Main Dashboard Cards */}
             <div className="row mb-4">
               {/* Latest Data Leads */}
