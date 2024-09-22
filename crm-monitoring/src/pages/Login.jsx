@@ -40,13 +40,13 @@ function Login() {
             className="left-side d-flex flex-column justify-content-center align-items-center"
           >
             <Image
-              src="src/assets/Logo.png"
+              src="/src/assets/Logo.png"
               className="img-fluid mb-3"
               alt="BigSocial"
               style={{ maxWidth: "200px" }}
             />
             <Image
-              src="src/assets/loginImg.png"
+              src="/src/assets/loginImg.png"
               className="img-fluid mb-3"
               alt="BigSocial"
               style={{ maxWidth: "400px" }}

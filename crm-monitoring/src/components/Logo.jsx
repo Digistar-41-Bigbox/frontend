@@ -5,7 +5,7 @@ const Logo = () => {
     <div className="logo">
       <div className="logo-icon">
         <Image
-          src="src/assets/Logo.png" // Sesuaikan dengan path gambar Anda
+          src="/src/assets/Logo.png" // Sesuaikan dengan path gambar Anda
         />
       </div>
     </div>

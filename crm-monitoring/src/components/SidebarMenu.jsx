@@ -65,13 +65,13 @@ const SidebarMenu = ({ collapsed, name = "User" }) => {
       <div className="logo-container p-3">
         {!collapsed ? (
           <img
-            src="src/assets/LogoFull.png"
+            src="/src/assets/LogoFull.png"
             alt="Logo"
             className="logo-full img-fluid"
           />
         ) : (
           <img
-            src="src/assets/LogoHalf.png"
+            src="/src/assets/LogoHalf.png"
             alt="Logo"
             className="logo-collapsed "
           />
