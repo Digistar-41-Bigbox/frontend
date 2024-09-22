@@ -25,3 +25,29 @@
     margin-left: 0; /* Sidebar will be stacked or hidden on small screens */
   }
 }
+.btn-danger {
+  color: black;
+  border: none;
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+/* Gaya saat tombol dihover */
+.btn-danger:hover {
+  background-color: #d03a37;
+  color: white;
+  cursor: pointer;
+}
+
+/* Gaya saat tombol diklik */
+.btn-danger:active {
+  background-color: #b0302c;
+}
+
+/* Gaya tambahan untuk ikon di dalam tombol */
+.btn-danger .me-2 {
+  margin-right: 8px;
+}

@@ -11,6 +11,8 @@ import {
   Input,
   Row,
   Col,
+  Menu,
+  Dropdown,
 } from "antd";
 import {
   MenuUnfoldOutlined,
@@ -20,6 +22,8 @@ import {
   DeleteOutlined,
   EditOutlined,
   UserAddOutlined,
+  FilterOutlined,
+  MenuOutlined,
 } from "@ant-design/icons";
 import "../style/DataLeads.css";
 import { useAuth } from "../context/AuthContext";
@@ -58,8 +62,11 @@ const DataLeads = ({ name }) => {
   const [selectedFile, setSelectedFile] = useState(null); // State untuk menyimpan file yang diunggah
   const [setIsUploading] = useState(false); // State untuk melacak status upload
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchText, setSearchText] = useState("");
+  const [selectedPIC, setSelectedPIC] = useState(null); // State for filtering by PIC
   const itemsPerPage = 10;
   const { userInfo = { name: "" } } = useAuth();
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
   const picMembers = [
     { value: "Shinta Dewi", label: "Shinta Dewi" },
@@ -138,12 +145,40 @@ const DataLeads = ({ name }) => {
       },
     });
   };
+  // Fungsi hapus untuk beberapa baris
+  const deleteMultipleLeads = () => {
+    confirm({
+      title: "Hapus Data Leads yang Dipilih?",
+      content: "Data yang telah terhapus tidak dapat dipulihkan.",
+      okText: "Ya",
+      okType: "danger",
+      cancelText: "Tidak",
+      icon: <DeleteOutlined style={{ color: "red" }} />,
+      onOk: () => {
+        setLeadsData(
+          leadsData.filter((item) => !selectedRowKeys.includes(item.key))
+        );
+        setSelectedRowKeys([]); // Reset pilihan setelah penghapusan
+      },
+    });
+  };
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
-  const totalPages = Math.ceil(leadsData.length / itemsPerPage);
-  const currentData = leadsData.slice(
+  // Fungsi untuk memfilter data berdasarkan pencarian
+  const filteredData = leadsData
+    .filter((lead) => (selectedPIC ? lead.pic === selectedPIC : true))
+    .filter((lead) =>
+      Object.values(lead).some((value) =>
+        value.toString().toLowerCase().includes(searchText.toLowerCase())
+      )
+    );
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const currentData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -223,7 +258,7 @@ const DataLeads = ({ name }) => {
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setSelectedFile(file);
-    setIsUploading(file ? true : false); // Enable upload mode if a file is selected
+    setIsUploading(file ? true : false);
   };
 
   // Fungsi untuk menangani pengunggahan file
@@ -249,12 +284,9 @@ const DataLeads = ({ name }) => {
 
   // Row selection for checkbox
   const rowSelection = {
-    onChange: (selectedRowKeys, selectedRows) => {
-      console.log(
-        `Selected Row Keys: ${selectedRowKeys}`,
-        "Selected Rows: ",
-        selectedRows
-      );
+    selectedRowKeys,
+    onChange: (newSelectedRowKeys) => {
+      setSelectedRowKeys(newSelectedRowKeys);
     },
   };
 
@@ -275,7 +307,7 @@ const DataLeads = ({ name }) => {
       {/* Layout */}
       <Layout className="site-layout">
         {/* Header with Toggle Button */}
-        <Header className="bg-light sticky-top px-4 shadow-sm">
+        <Header className="bg-light  px-4 shadow-sm">
           <div className="d-flex align-items-center">
             <Button
               type="text"
@@ -308,6 +340,19 @@ const DataLeads = ({ name }) => {
             minHeight: 280,
           }}
         >
+          <Col>
+            {selectedRowKeys.length > 0 && (
+              <Button
+                type="button" // Ubah type menjadi button
+                variant="danger" // Tambahkan variant dari Bootstrap
+                className="btn-danger btn-lg d-flex align-items-center ml-2"
+                onClick={deleteMultipleLeads}
+              >
+                <DeleteOutlined className="me-2" /> Delete Selected
+              </Button>
+            )}
+          </Col>
+
           <Table
             rowSelection={rowSelection}
             columns={columns}
@@ -317,8 +362,25 @@ const DataLeads = ({ name }) => {
             style={{ marginTop: 10 }}
             className="custom-table"
             title={() => (
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <Input.Search placeholder="Cari" className="me-3 " />
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div className="d-flex flex-grow-1 align-items-center">
+                  <Input
+                    placeholder="Cari"
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    style={{ width: "100%", marginRight: 8 }}
+                  />
+
+                  <Button icon={<FilterOutlined />} />
+
+                  <Button className="mx-2" icon={<MenuOutlined />} />
+                </div>
                 <Space>
                   <Button icon={<DownloadOutlined />}>Export Data</Button>
                   <Button
@@ -334,7 +396,7 @@ const DataLeads = ({ name }) => {
           />
 
           {/* Custom Pagination with Total Records */}
-          <Row className="mt-4" justify="space-between" align="middle">
+          <Row className="mt-4 ms-5" justify="space-between" align="middle">
             <Col>
               <nav aria-label="Page navigation example">
                 <ul className="pagination">
@@ -386,10 +448,10 @@ const DataLeads = ({ name }) => {
               </nav>
             </Col>
             {/* Show total records */}
-            <div>
+            <div className="me-5">
               Displaying {itemsPerPage * (currentPage - 1) + 1} -{" "}
-              {Math.min(itemsPerPage * currentPage, leadsData.length)} of{" "}
-              {leadsData.length} records
+              {Math.min(itemsPerPage * currentPage, filteredData.length)} of{" "}
+              {filteredData.length} records
             </div>
           </Row>
         </Content>
@@ -572,11 +634,6 @@ const DataLeads = ({ name }) => {
                 <Button type="primary" onClick={handleUpload}>
                   Unggah Dokumen
                 </Button>
-                {selectedFile && (
-                  <div className="mt-3">
-                    <p>File dipilih: {selectedFile.name}</p>
-                  </div>
-                )}
               </div>
             )}
           </Form>

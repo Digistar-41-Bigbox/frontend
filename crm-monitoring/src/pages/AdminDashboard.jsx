@@ -97,7 +97,7 @@ const AdminDashboard = () => {
               className="text-muted fw-semibold ms-2 mt-4 mb-3"
               style={{ fontSize: "20px" }}
             >
-              {userRole === "dmin"
+              {userRole === "admin"
                 ? "Dashboard Manager Leads."
                 : "Dashboard PIC Leads."}
             </p>
@@ -146,7 +146,10 @@ const AdminDashboard = () => {
                         </tr>
                       </tbody>
                     </table>
-                    <a href="#" className="card-link">
+                    <a
+                      href="/data-leads"
+                      className="d-flex justify-content-end card-link text-decoration-none"
+                    >
                       Lainnya
                     </a>
                   </div>

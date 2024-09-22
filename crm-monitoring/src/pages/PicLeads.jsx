@@ -19,6 +19,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   UserAddOutlined,
+  FilterOutlined,
 } from "@ant-design/icons";
 import "../style/PicLeads.css";
 import { useAuth } from "../context/AuthContext";
@@ -26,6 +27,7 @@ import SidebarMenu from "../components/SidebarMenu";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const { Header, Sider, Content } = Layout;
+const { confirm } = Modal;
 
 const PicLeads = ({ name }) => {
   const [leadsData, setLeadsData] = useState([
@@ -57,8 +59,10 @@ const PicLeads = ({ name }) => {
   const [form] = Form.useForm();
   const [isManualInput, setIsManualInput] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchText, setSearchText] = useState("");
   const itemsPerPage = 10;
   const { userInfo = { name: "" } } = useAuth();
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
   const picMembers = [
     { value: "Shinta Dewi", label: "Shinta Dewi" },
@@ -101,7 +105,15 @@ const PicLeads = ({ name }) => {
         setIsModalVisible(false);
       })
       .catch((info) => {
-        console.log("Validate Failed:", info);
+        // Cek jika error berasal dari field yang salah
+        if (info && info.errorFields) {
+          const errorMessages = info.errorFields
+            .map((field) => field.errors)
+            .flat();
+          alert(errorMessages.join(", ")); // Gabungkan dan tampilkan semua pesan error
+        } else {
+          alert("Terjadi kesalahan yang tidak diketahui");
+        }
       });
   };
 
@@ -137,13 +149,37 @@ const PicLeads = ({ name }) => {
       },
     });
   };
+  // Fungsi hapus untuk beberapa baris
+  const deleteMultipleLeads = () => {
+    confirm({
+      title: "Hapus Data Leads yang Dipilih?",
+      content: "Data yang telah terhapus tidak dapat dipulihkan.",
+      okText: "Ya",
+      okType: "danger",
+      cancelText: "Tidak",
+      icon: <DeleteOutlined style={{ color: "red" }} />,
+      onOk: () => {
+        setLeadsData(
+          leadsData.filter((item) => !selectedRowKeys.includes(item.key))
+        );
+        setSelectedRowKeys([]); // Reset pilihan setelah penghapusan
+      },
+    });
+  };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
-  const totalPages = Math.ceil(leadsData.length / itemsPerPage);
-  const currentData = leadsData.slice(
+  // Fungsi untuk memfilter data berdasarkan pencarian
+  const filteredData = leadsData.filter((lead) =>
+    Object.values(lead).some((value) =>
+      value.toString().toLowerCase().includes(searchText.toLowerCase())
+    )
+  );
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const currentData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -206,12 +242,9 @@ const PicLeads = ({ name }) => {
   ];
 
   const rowSelection = {
-    onChange: (selectedRowKeys, selectedRows) => {
-      console.log(
-        `Selected Row Keys: ${selectedRowKeys}`,
-        "Selected Rows: ",
-        selectedRows
-      );
+    selectedRowKeys,
+    onChange: (newSelectedRowKeys) => {
+      setSelectedRowKeys(newSelectedRowKeys);
     },
   };
 
@@ -230,7 +263,7 @@ const PicLeads = ({ name }) => {
       {/* Layout */}
       <Layout className="site-layout">
         {/* Header with Toggle Button */}
-        <Header className="bg-light sticky-top px-4 shadow-sm">
+        <Header className="bg-light  px-4 shadow-sm">
           <div className="d-flex align-items-center">
             <Button
               type="text"
@@ -263,6 +296,18 @@ const PicLeads = ({ name }) => {
             minHeight: 280,
           }}
         >
+          <Col>
+            {selectedRowKeys.length > 0 && (
+              <Button
+                type="button" // Ubah type menjadi button
+                variant="danger" // Tambahkan variant dari Bootstrap
+                className="btn-danger btn-lg d-flex align-items-center ml-2"
+                onClick={deleteMultipleLeads}
+              >
+                <DeleteOutlined className="me-2" /> Delete Selected
+              </Button>
+            )}
+          </Col>
           <div className="container-fluid m-0 p-0">
             <Table
               rowSelection={rowSelection}
@@ -274,9 +319,21 @@ const PicLeads = ({ name }) => {
               rowKey="key"
               title={() => (
                 <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
                 >
-                  <Input.Search placeholder="Cari" className="me-3" />
+                  <div className="d-flex flex-grow-1 align-items-center">
+                    <Input
+                      placeholder="Cari"
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      style={{ width: "100%", marginRight: 8 }}
+                    />
+                    <Button icon={<FilterOutlined />} />
+                  </div>
                   <Space>
                     <Button icon={<DownloadOutlined />}>Export Data</Button>
                     <Button
@@ -292,7 +349,7 @@ const PicLeads = ({ name }) => {
             />
 
             {/* Custom Pagination with Total Records */}
-            <Row className="mt-4" justify="space-between" align="middle">
+            <Row className="mt-4 ms-5" justify="space-between" align="middle">
               {/* Pagination on the left */}
               <Col>
                 <nav aria-label="Page navigation example">
@@ -344,15 +401,12 @@ const PicLeads = ({ name }) => {
                   </ul>
                 </nav>
               </Col>
-
-              {/* Show total records on the right */}
-              <Col>
-                <div>
-                  Displaying {itemsPerPage * (currentPage - 1) + 1} -{" "}
-                  {Math.min(itemsPerPage * currentPage, leadsData.length)} of{" "}
-                  {leadsData.length} records
-                </div>
-              </Col>
+              {/* Show total records */}
+              <div className="me-5">
+                Displaying {itemsPerPage * (currentPage - 1) + 1} -{" "}
+                {Math.min(itemsPerPage * currentPage, filteredData.length)} of{" "}
+                {filteredData.length} records
+              </div>
             </Row>
           </div>
         </Content>
