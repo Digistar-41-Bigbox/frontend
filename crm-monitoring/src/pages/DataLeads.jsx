@@ -446,16 +446,23 @@ const fetchPICData = async () => {
             </div>
           </div>
 
-          <Form form={form} layout="vertical" initialValues={{ remember: true }}>
-            <Form.Item label="Input Data">
-              <Select
-                value={isManualInput ? "Manual" : "XLS"}
-                onChange={(value) => setIsManualInput(value === "Manual")}
-              >
-                <Select.Option value="Manual">Manual</Select.Option>
-                <Select.Option value="XLS">XLS</Select.Option>
-              </Select>
-            </Form.Item>
+          <Form
+            form={form}
+            layout="vertical"
+            initialValues={{ remember: true }}
+          >
+            {/* Conditionally render the input method dropdown */}
+            {!editingKey && ( // Only show dropdown when not editing
+              <Form.Item label="Input Data">
+                <Select
+                  value={isManualInput ? "Manual" : "XLS"}
+                  onChange={(value) => setIsManualInput(value === "Manual")}
+                >
+                  <Select.Option value="Manual">Manual</Select.Option>
+                  <Select.Option value="XLS">XLS</Select.Option>
+                </Select>
+              </Form.Item>
+            )}
 
             {isManualInput ? (
               <>
@@ -525,11 +532,11 @@ const fetchPICData = async () => {
                 <Button type="primary" onClick={handleUpload} loading={isUploading}>
                   Unggah Dokumen
                 </Button>
-                {selectedFile && (
+                {/* {selectedFile && (
                   <div className="mt-3">
                     <p>File dipilih: {selectedFile.name}</p>
                   </div>
-                )}
+                )} */}
               </div>
             )}
           </Form>
