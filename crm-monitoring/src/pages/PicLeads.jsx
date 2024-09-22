@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Layout,
   Table,
@@ -10,6 +10,7 @@ import {
   Input,
   Row,
   Col,
+  message,
 } from "antd";
 import {
   MenuUnfoldOutlined,
@@ -24,128 +25,14 @@ import "../style/PicLeads.css";
 import { useAuth } from "../context/AuthContext";
 import SidebarMenu from "../components/SidebarMenu";
 import "bootstrap/dist/css/bootstrap.min.css";
+import axios from "axios";
 
 const { Header, Sider, Content } = Layout;
+const { confirm } = Modal;
 
 const PicLeads = ({ name }) => {
-  const [leadsData, setLeadsData] = useState([
-    {
-      key: "1",
-      pic: "Shinta Dewi",
-      email: "Perusahaan@gmail.com",
-      phone: "08123456789",
-      cool: 7,
-      warm: 10,
-      hot: 9,
-      total: 26,
-    },
-    {
-      key: "2",
-      pic: "Agunawan",
-      email: "Perusahaan@gmail.com",
-      phone: "08123456789",
-      cool: 7,
-      warm: 10,
-      hot: 9,
-      total: 26,
-    },    {
-      key: "1",
-      pic: "Shinta Dewi",
-      email: "Perusahaan@gmail.com",
-      phone: "08123456789",
-      cool: 7,
-      warm: 10,
-      hot: 9,
-      total: 26,
-    },
-    {
-      key: "2",
-      pic: "Agunawan",
-      email: "Perusahaan@gmail.com",
-      phone: "08123456789",
-      cool: 7,
-      warm: 10,
-      hot: 9,
-      total: 26,
-    },    {
-      key: "1",
-      pic: "Shinta Dewi",
-      email: "Perusahaan@gmail.com",
-      phone: "08123456789",
-      cool: 7,
-      warm: 10,
-      hot: 9,
-      total: 26,
-    },
-    {
-      key: "2",
-      pic: "Agunawan",
-      email: "Perusahaan@gmail.com",
-      phone: "08123456789",
-      cool: 7,
-      warm: 10,
-      hot: 9,
-      total: 26,
-    },    {
-      key: "1",
-      pic: "Shinta Dewi",
-      email: "Perusahaan@gmail.com",
-      phone: "08123456789",
-      cool: 7,
-      warm: 10,
-      hot: 9,
-      total: 26,
-    },
-    {
-      key: "2",
-      pic: "Agunawan",
-      email: "Perusahaan@gmail.com",
-      phone: "08123456789",
-      cool: 7,
-      warm: 10,
-      hot: 9,
-      total: 26,
-    },    {
-      key: "1",
-      pic: "Shinta Dewi",
-      email: "Perusahaan@gmail.com",
-      phone: "08123456789",
-      cool: 7,
-      warm: 10,
-      hot: 9,
-      total: 26,
-    },
-    {
-      key: "2",
-      pic: "Agunawan",
-      email: "Perusahaan@gmail.com",
-      phone: "08123456789",
-      cool: 7,
-      warm: 10,
-      hot: 9,
-      total: 26,
-    },    {
-      key: "1",
-      pic: "Shinta Dewi",
-      email: "Perusahaan@gmail.com",
-      phone: "08123456789",
-      cool: 7,
-      warm: 10,
-      hot: 9,
-      total: 26,
-    },
-    {
-      key: "2",
-      pic: "Agunawan",
-      email: "Perusahaan@gmail.com",
-      phone: "08123456789",
-      cool: 7,
-      warm: 10,
-      hot: 9,
-      total: 26,
-    },
-  ]);
-
+  const [leadsData, setLeadsData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingKey, setEditingKey] = useState("");
@@ -154,13 +41,41 @@ const PicLeads = ({ name }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const { userInfo = { name: "" } } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const picMembers = [
-    { value: "Shinta Dewi", label: "Shinta Dewi" },
-    { value: "Agunawan", label: "Agunawan" },
-    { value: "Rina Sari", label: "Rina Sari" },
-    // Add more members as needed
-  ];
+  useEffect(() => {
+    fetchLeadsData();
+  }, [searchQuery]);
+
+  const fetchLeadsData = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/pic/get-all`, {
+        params: { search: searchQuery }
+      });
+      if (response.data.status === 201) {
+        const formattedData = response.data.data.map((item) => ({
+          key: item.id_users,
+          name: item.name,
+          email: item.email,
+          no_hp: item.no_hp,
+          cool: parseInt(item.cold),
+          warm: parseInt(item.warm),
+          hot: parseInt(item.hot),
+          total: parseInt(item.total_status),
+        }));
+        setLeadsData(formattedData);
+      } else {
+        message.error("Failed to fetch data");
+      }
+    } catch (error) {
+      setLeadsData([]);
+      console.error("Error fetching data:", error);
+      // message.error("An error occurred while fetching data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const showAddModal = () => {
     setIsModalVisible(true);
@@ -178,26 +93,50 @@ const PicLeads = ({ name }) => {
     setCollapsed(!collapsed);
   };
 
-  const handleOk = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        if (editingKey) {
-          // Update data
-          const updatedData = leadsData.map((lead) =>
-            lead.key === editingKey ? { ...lead, ...values } : lead
-          );
-          setLeadsData(updatedData);
-        } else if (isManualInput) {
-          // Add new lead
-          const newKey = (leadsData.length + 1).toString();
-          setLeadsData([...leadsData, { ...values, key: newKey }]);
-        }
-        setIsModalVisible(false);
-      })
-      .catch((info) => {
-        console.log("Validate Failed:", info);
-      });
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields();
+      if (editingKey) {
+        // Update data
+        await updateLead(editingKey, values);
+      } else {
+        // Add new lead
+        await addLead(values);
+      }
+      setIsModalVisible(false);
+      fetchLeadsData(); // Refresh the data
+    } catch (info) {
+      console.log("Validate Failed:", info);
+    }
+  };
+
+  const addLead = async (values) => {
+    try {
+      const response = await axios.post("/api/v1/pic/create", values);
+      if (response.data.status === 201) {
+        message.success("Lead added successfully");
+      } else {
+        message.error("Failed to add lead");
+      }
+    } catch (error) {
+      console.error("Error adding lead:", error);
+      message.error("An error occurred while adding the lead");
+    }
+  };
+
+  const updateLead = async (id, values) => {
+    try {
+      console.log(values);
+      const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/v1/pic/edit/${id}`, values);
+      if (response.data.status === 200) {
+        message.success("Lead updated successfully");
+      } else {
+        message.error("Failed to update lead");
+      }
+    } catch (error) {
+      console.error("Error updating lead:", error);
+      message.error("An error occurred while updating the lead");
+    }
   };
 
   const editLead = (record) => {
@@ -227,14 +166,29 @@ const PicLeads = ({ name }) => {
           color: "#F54A45",
         },
       },
-      onOk: () => {
-        setLeadsData(leadsData.filter((item) => item.key !== key));
+      onOk: async () => {
+        try {
+          const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/v1/pic/delete/${key}`);
+          if (response.data.status === 200) {
+            message.success("Lead deleted successfully");
+            fetchLeadsData(); // Refresh the data
+          } else {
+            message.error("Failed to delete lead");
+          }
+        } catch (error) {
+          console.error("Error deleting lead:", error);
+          message.error("An error occurred while deleting the lead");
+        }
       },
     });
   };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+  const handleSearch = (value) => {
+    setSearchQuery(value);
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   const totalPages = Math.ceil(leadsData.length / itemsPerPage);
@@ -246,8 +200,8 @@ const PicLeads = ({ name }) => {
   const columns = [
     {
       title: "Nama PIC Leads",
-      dataIndex: "pic",
-      key: "pic",
+      dataIndex: "name",
+      key: "name",
     },
     {
       title: "Email",
@@ -256,8 +210,8 @@ const PicLeads = ({ name }) => {
     },
     {
       title: "Nomor Telepon",
-      dataIndex: "phone",
-      key: "phone",
+      dataIndex: "no_hp",
+      key: "no_hp",
     },
     {
       title: "Cool",
@@ -312,7 +266,6 @@ const PicLeads = ({ name }) => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      {/* Sidebar */}
       <Sider
         trigger={null}
         collapsible
@@ -322,9 +275,7 @@ const PicLeads = ({ name }) => {
         <SidebarMenu collapsed={collapsed} name={name} />
       </Sider>
 
-      {/* Layout */}
       <Layout className="site-layout">
-        {/* Header with Toggle Button */}
         <Header className="bg-light sticky-top px-4 shadow-sm">
           <div className="d-flex align-items-center">
             <Button
@@ -340,7 +291,6 @@ const PicLeads = ({ name }) => {
             />
 
             <div className="ms-3 d-flex flex-column justify-content-center">
-              {/* Nama pengguna */}
               <h1 className="h4 fw-semibold mb-0">
                 Welcome back, {userInfo?.name || "John Doe"}!
               </h1>
@@ -348,7 +298,6 @@ const PicLeads = ({ name }) => {
           </div>
         </Header>
 
-        {/* Main Content */}
         <Content
           className={`site-layout-background ${
             collapsed ? "content-collapsed" : "content-expanded"
@@ -358,8 +307,9 @@ const PicLeads = ({ name }) => {
             minHeight: 280,
           }}
         >
-          <div className="site-layout-background" style={{ margin: "24px 16px", padding: 24, minHeight: 280 }} >
+          <div className="site-layout-background" style={{ margin: "24px 16px", padding: 24, minHeight: 280 }}>
             <Table
+              loading={loading}
               rowSelection={rowSelection}
               columns={columns}
               dataSource={currentData}
@@ -371,7 +321,12 @@ const PicLeads = ({ name }) => {
                 <div
                   style={{ display: "flex", justifyContent: "space-between" }}
                 >
-                  <Input.Search placeholder="Cari" className="me-3" />
+                  <Input.Search 
+                    placeholder="Cari" 
+                    className="me-3" 
+                    onSearch={handleSearch}
+                    style={{ marginTop: 0 }}
+                  />
                   <Space>
                     <Button icon={<DownloadOutlined />}>Export Data</Button>
                     <Button
@@ -386,9 +341,7 @@ const PicLeads = ({ name }) => {
               )}
             />
 
-            {/* Custom Pagination with Total Records */}
             <Row className="mt-4" justify="space-between" align="middle">
-              {/* Pagination on the left */}
               <Col>
                 <nav aria-label="Page navigation example">
                   <ul className="pagination">
@@ -440,7 +393,6 @@ const PicLeads = ({ name }) => {
                 </nav>
               </Col>
 
-              {/* Show total records on the right */}
               <Col>
                 <div>
                   Displaying {itemsPerPage * (currentPage - 1) + 1} -{" "}
@@ -453,7 +405,6 @@ const PicLeads = ({ name }) => {
         </Content>
       </Layout>
 
-      {/* Modal for Add/Edit Lead */}
       <Modal
         open={isModalVisible}
         onCancel={handleCancel}
@@ -516,17 +467,11 @@ const PicLeads = ({ name }) => {
             initialValues={{ remember: true }}
           >
             <Form.Item
-              name="pic"
+              name="name"
               label="Nama PIC Leads"
               rules={[{ required: true, message: "Please input PIC Leads!" }]}
             >
-              <Select placeholder="Pilih PIC Leads">
-                {picMembers.map((member) => (
-                  <Select.Option key={member.value} value={member.value}>
-                    {member.label}
-                  </Select.Option>
-                ))}
-              </Select>
+              <Input />
             </Form.Item>
             <Form.Item
               name="email"
@@ -537,7 +482,7 @@ const PicLeads = ({ name }) => {
             </Form.Item>
             <Form.Item
               label="Nomor Telepon"
-              name="phone"
+              name="no_hp"
               rules={[{ required: true, message: "Masukkan nomor telepon" }]}
             >
               <Input />

@@ -26,7 +26,7 @@ const AdminDashboard = () => {
   const refreshToken = async () => {
     try {
       const response = await axios.get(
-        "https://backend-dev-eosin.vercel.app/api/v1/auth/token"
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/auth/token`
       );
       setToken(response.data.accessToken);
       const decoded = jwtDecode(response.data.accessToken); // Using named export
@@ -38,7 +38,7 @@ const AdminDashboard = () => {
 
   const fetchLatestLeads = async () => {
     try {
-      const response = await axios.get("https://backend-dev-eosin.vercel.app/api/v1/lead/get-lead-latest");
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/lead/get-lead-latest`);
       setLeadData(response.data.data); // Set the fetched lead data
     } catch (error) {
       console.error("Error fetching latest leads:", error);

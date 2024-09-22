@@ -26,15 +26,16 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (emailInput, password) => {
     try {
+      console.log(import.meta.env.VITE_BACKEND_URL);
       const response = await axios.post(
-        "https://backend-dev-eosin.vercel.app/api/v1/auth/login",
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/auth/login`,
         { email: emailInput, password }
       );
       const accessToken = response.data.data.accessToken;
       const decoded = jwtDecode(accessToken);
 
       const responseGetUser = await axios.get(
-        "https://backend-dev-eosin.vercel.app/api/v1/auth/get-user",
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/auth/get-user`,
         {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
@@ -71,7 +72,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Panggil API untuk logout jika diperlukan
       await axios.delete(
-        "https://backend-dev-eosin.vercel.app/api/v1/auth/logout"
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/auth/logout`
       );
       // Hapus token dan role dari localStorage
       setToken(null);

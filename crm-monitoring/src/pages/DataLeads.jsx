@@ -60,7 +60,7 @@ const DataLeads = ({ name }) => {
 const fetchLeadsData = async () => {
   setLoading(true);
   try {
-    const response = await axios.get(`http://127.0.0.1:8080/api/v1/lead/get-all-leads`, {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/lead/get-all-leads`, {
       params: {
         limit: 1000,
         search: searchTerm,
@@ -90,7 +90,7 @@ const fetchLeadsData = async () => {
 const fetchPICData = async () => {
   setLoading(true);
   try {
-    const response = await axios.get(`http://127.0.0.1:8080/api/v1/pic/get-all-filter`);
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/pic/get-all-filter`);
     
     if (response.data.status === 201) {
       setPICData(response.data.data);
@@ -108,6 +108,38 @@ const fetchPICData = async () => {
   }
 };
   
+const exportExcel = async () => {
+  setLoading(true);
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/lead/export/excel`, {
+      responseType: 'blob', // Ensure the response is a Blob
+    });
+
+    // Create a URL for the blob
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+
+    // Create a link element and set the href
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'leads_data.xlsx'); // Set the file name
+
+    // Append to the body
+    document.body.appendChild(link);
+
+    // Programmatically click the link to trigger the download
+    link.click();
+
+    // Remove the link after triggering the download
+    document.body.removeChild(link);
+    
+    message.success("File downloaded successfully");
+  } catch (error) {
+    console.error("Export Failed", error);
+    message.error("Failed to export data");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const showAddModal = () => {
     setIsModalVisible(true);
@@ -149,10 +181,11 @@ const fetchPICData = async () => {
       const values = await form.validateFields();
       if (editingKey) {
         console.log(values);
-        await axios.put(`http://127.0.0.1:8080/api/v1/lead/update/${editingKey}`, values);
+       await axios.put(`${import.meta.env.BACKEND_URL}/api/v1/lead/update/${editingKey}`, values);
+  
         message.success("Lead updated successfully");
       } else {
-        await axios.post(`http://127.0.0.1:8080/api/v1/lead/create`, values);
+        await axios.post(`${import.meta.env.BACKEND_URL}/api/v1/lead/create`, values);
         message.success("Lead added successfully");
       }
       setIsModalVisible(false);
@@ -180,7 +213,7 @@ const fetchPICData = async () => {
       icon: <DeleteOutlined style={{ color: "red" }} />,
       onOk: async () => {
         try {
-          await axios.delete(`http://127.0.0.1:8080/api/v1/lead/delete/${id}`);
+          await axios.delete(`${import.meta.env.BACKEND_URL}/api/v1/lead/delete/${id}`);
           message.success("Lead deleted successfully");
           fetchLeadsData();
         } catch (error) {
@@ -208,7 +241,7 @@ const fetchPICData = async () => {
       try {
         const formData = new FormData();
         formData.append('file', selectedFile);
-        await axios.post(`http://127.0.0.1:8080/api/v1/lead/upload`, formData, {
+        await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/lead/upload`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -267,6 +300,11 @@ const fetchPICData = async () => {
       title: "Nomor Telepon",
       dataIndex: "no_hp",
       key: "no_hp",
+    },
+    {
+      title: "Notes",
+      dataIndex: "notes",
+      key: "notes",
     },
     {
       title: "Action",
@@ -338,7 +376,7 @@ const fetchPICData = async () => {
                     className="me-3"
                   />
                   <Space>
-                    <Button icon={<DownloadOutlined />}>Export Data</Button>
+                    <Button icon={<DownloadOutlined />} onClick={exportExcel}>Export Data</Button>
                     <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
                       Tambah
                     </Button>
@@ -485,16 +523,36 @@ const fetchPICData = async () => {
                   name="name_status"
                   rules={[{ required: true, message: "Pilih status leads" }]}
                 >
-                  <Select>
-                    <Select.Option value="3">Hot</Select.Option>
-                    <Select.Option value="2">Warm</Select.Option>
-                    <Select.Option value="1">Cold</Select.Option>
+                <Select>
+                    <Select.Option value="Hot">Hot</Select.Option>
+                    <Select.Option value="Warm">Warm</Select.Option>
+                    <Select.Option value="Cold">Cold</Select.Option>
                   </Select>
                 </Form.Item>
 
                 <Form.Item
                   label="Nama Instansi/Lembaga"
                   name="nama_instansi"
+                  rules={[{ required: true, message: "Masukkan nama instansi/lembaga" }]}
+                >
+                  <Input />
+                </Form.Item>
+
+                <Form.Item
+                  label="Jenis perusahaan"
+                  name="category_company"
+                  rules={[{ required: true, message: "Pilih status leads" }]}
+                >
+                <Select>
+                    <Select.Option value="Government Sector">Government Sector</Select.Option>
+                    <Select.Option value="Private Company">Private Company</Select.Option>
+                  </Select>
+                </Form.Item>                
+                
+
+                <Form.Item
+                  label="Nama Kontak"
+                  name="nama_pribadi"
                   rules={[{ required: true, message: "Masukkan nama instansi/lembaga" }]}
                 >
                   <Input />
@@ -512,6 +570,13 @@ const fetchPICData = async () => {
                   label="Nomor Telepon"
                   name="no_hp"
                   rules={[{ required: true, message: "Masukkan nomor telepon" }]}
+                >
+                  <Input />
+                </Form.Item>
+
+                <Form.Item
+                  label="Notes"
+                  name="notes"
                 >
                   <Input />
                 </Form.Item>
