@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Layout,
   Table,
@@ -11,6 +12,8 @@ import {
   Input,
   Row,
   Col,
+  message,
+  Spin,
 } from "antd";
 import {
   MenuUnfoldOutlined,
@@ -22,56 +25,93 @@ import {
   UserAddOutlined,
 } from "@ant-design/icons";
 import "../style/DataLeads.css";
-import { useAuth } from "../context/AuthContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import SidebarMenu from "../components/SidebarMenu";
+import { Pagination } from "react-bootstrap";
+import { useAuth } from "../context/AuthContext";
 
 const { Header, Sider, Content } = Layout;
 const { confirm } = Modal;
 
 const DataLeads = ({ name }) => {
-  const [leadsData, setLeadsData] = useState([
-    {
-      key: "1",
-      pic: "Shinta Dewi",
-      leadsStatus: "Cool",
-      company: "Perusahaan 1",
-      email: "perusahaan@gmail.com",
-      phone: "08123456789",
-      notes: "Saya minta kamu lebih rajin",
-    },
-    {
-      key: "2",
-      pic: "Agunawan",
-      leadsStatus: "Warm",
-      company: "Perusahaan 2",
-      email: "perusahaan2@gmail.com",
-      phone: "08123456790",
-      notes: "Saya minta kamu lebih cepat",
-    },
-  ]);
+  const [leadsData, setLeadsData] = useState([]);
+  const [PICData, setPICData] = useState([]);
   const [collapsed, setCollapsed] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingKey, setEditingKey] = useState("");
   const [form] = Form.useForm();
-  const [isManualInput, setIsManualInput] = useState(true); // Default to manual input
-  const [selectedFile, setSelectedFile] = useState(null); // State untuk menyimpan file yang diunggah
-  const [setIsUploading] = useState(false); // State untuk melacak status upload
+  const [isManualInput, setIsManualInput] = useState(true);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isAscending, setIsAscending] = useState(true);
+  const [isLatest, setIsLatest] = useState(false);
+  const [loading, setLoading] = useState(false);
   const itemsPerPage = 10;
   const { userInfo = { name: "" } } = useAuth();
 
-  const picMembers = [
-    { value: "Shinta Dewi", label: "Shinta Dewi" },
-    { value: "Agunawan", label: "Agunawan" },
-    { value: "Rina Sari", label: "Rina Sari" },
-    // Add more members as needed
-  ];
+  useEffect(() => {
+    fetchLeadsData();
+    fetchPICData();
+  }, [currentPage, searchTerm, isAscending, isLatest]);
+
+const fetchLeadsData = async () => {
+  setLoading(true);
+  try {
+    const response = await axios.get(`http://127.0.0.1:8080/api/v1/lead/get-all-leads`, {
+      params: {
+        limit: 1000,
+        search: searchTerm,
+        asc: isAscending,
+        latest: isLatest
+      }
+    });
+    
+    if (response.data.status === 201) {
+      setLeadsData(response.data.data);
+      setTotalRecords(response.data.total || response.data.data.length);
+    }
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      setLeadsData([]); // Clear data if no records found
+      setTotalRecords(0);
+      message.warning("No data found");
+    } else {
+      console.error("Error fetching leads data:", error);
+      // message.error("Failed to fetch leads data");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+const fetchPICData = async () => {
+  setLoading(true);
+  try {
+    const response = await axios.get(`http://127.0.0.1:8080/api/v1/pic/get-all-filter`);
+    
+    if (response.data.status === 201) {
+      setPICData(response.data.data);
+    }
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      setLeadsData([]); // Clear data if no records found
+      message.warning("No data found");
+    } else {
+      console.error("Error fetching leads data:", error);
+      // message.error("Failed to fetch leads data");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+  
 
   const showAddModal = () => {
     setIsModalVisible(true);
     form.resetFields();
-    form.setFieldsValue({ inputMethod: "Manual" });
     setEditingKey("");
     setIsManualInput(true);
   };
@@ -82,61 +122,17 @@ const DataLeads = ({ name }) => {
 
   const handleCancel = () => {
     setIsModalVisible(false);
+    form.resetFields();
   };
-
-  const handleOk = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        if (editingKey) {
-          // Update data
-          const updatedData = leadsData.map((lead) =>
-            lead.key === editingKey ? { ...lead, ...values } : lead
-          );
-          setLeadsData(updatedData);
-        } else if (isManualInput) {
-          // Add new lead
-          const newKey = (leadsData.length + 1).toString();
-          setLeadsData([...leadsData, { ...values, key: newKey }]);
-        }
-        setIsModalVisible(false);
-      })
-      .catch((info) => {
-        console.log("Validate Failed:", info);
-      });
-  };
-
-  const editLead = (record) => {
-    setIsModalVisible(true);
-    form.setFieldsValue(record);
-    setEditingKey(record.key);
-    setIsManualInput(true);
-  };
-
-  const deleteLead = (key) => {
-    confirm({
-      title: "Hapus Data Leads ini?",
-      content: "Data yang telah terhapus tidak dapat dipulihkan.",
-      okText: "Ya",
-      okType: "danger",
-      cancelText: "Tidak",
-      icon: <DeleteOutlined style={{ color: "red" }} />,
-      okButtonProps: {
-        style: {
-          backgroundColor: "#F54A45",
-          color: "#FFFFFF",
-        },
-      },
-      cancelButtonProps: {
-        style: {
-          backgroundColor: "#FDDBDA",
-          color: "#F54A45",
-        },
-      },
-      onOk: () => {
-        setLeadsData(leadsData.filter((item) => item.key !== key));
-      },
-    });
+  // Row selection for checkbox
+  const rowSelection = {
+    onChange: (selectedRowKeys, selectedRows) => {
+      console.log(
+        `Selected Row Keys: ${selectedRowKeys}`,
+        "Selected Rows: ",
+        selectedRows
+      );
+    },
   };
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -148,40 +144,119 @@ const DataLeads = ({ name }) => {
     currentPage * itemsPerPage
   );
 
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields();
+      if (editingKey) {
+        console.log(values);
+        await axios.put(`http://127.0.0.1:8080/api/v1/lead/update/${editingKey}`, values);
+        message.success("Lead updated successfully");
+      } else {
+        await axios.post(`http://127.0.0.1:8080/api/v1/lead/create`, values);
+        message.success("Lead added successfully");
+      }
+      setIsModalVisible(false);
+      fetchLeadsData();
+    } catch (error) {
+      console.error("Error saving lead:", error);
+      message.error("Failed to save lead");
+    }
+  };
+
+  const editLead = (record) => {
+    setIsModalVisible(true);
+    form.setFieldsValue(record);
+    setEditingKey(record.id_leads);
+    setIsManualInput(true);
+  };
+
+  const deleteLead = (id) => {
+    confirm({
+      title: "Hapus Data Leads ini?",
+      content: "Data yang telah terhapus tidak dapat dipulihkan.",
+      okText: "Ya",
+      okType: "danger",
+      cancelText: "Tidak",
+      icon: <DeleteOutlined style={{ color: "red" }} />,
+      onOk: async () => {
+        try {
+          await axios.delete(`http://127.0.0.1:8080/api/v1/lead/delete/${id}`);
+          message.success("Lead deleted successfully");
+          fetchLeadsData();
+        } catch (error) {
+          
+          console.error("Error deleting lead:", error);
+          message.error("Failed to delete lead");
+        }
+      },
+    });
+  };
+
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+    // setCurrentPage(1);
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    setSelectedFile(file);
+  };
+
+  const handleUpload = async () => {
+    if (selectedFile) {
+      setIsUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        await axios.post(`http://127.0.0.1:8080/api/v1/lead/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        message.success("File uploaded successfully");
+        setIsModalVisible(false);
+        fetchLeadsData();
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        message.error("Failed to upload file");
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      message.warning("Please select a file to upload");
+    }
+  };
+
   const columns = [
     {
       title: "PIC Leads",
-      dataIndex: "pic",
-      key: "pic",
+      dataIndex: "name",
+      key: "name",
     },
     {
       title: "Leads",
-      dataIndex: "leadsStatus",
-      key: "leadsStatus",
+      dataIndex: "name_status",
+      key: "name_status",
       render: (status) => (
-        <Tag
-          color={
-            status === "Hot" ? "red" : status === "Warm" ? "orange" : "blue"
-          }
-        >
+        <Tag color={status === "Hot" ? "red" : status === "Warm" ? "orange" : "blue"}>
           {status.toUpperCase()}
         </Tag>
       ),
     },
     {
-      title: "Jenis Perusahaan",
-      dataIndex: "jenis",
-      key: "jenis",
+      title: "Nama Instansi/Lembaga",
+      dataIndex: "nama_instansi",
+      key: "nama_instansi",
     },
     {
-      title: "Nama Instansi/Lembaga",
-      dataIndex: "company",
-      key: "company",
+      title: "Jenis Perusahaan",
+      dataIndex: "category_company",
+      key: "category_company",
     },
     {
       title: "Nama Kontak",
-      dataIndex: "nama_kontak",
-      key: "nama_kontak",
+      dataIndex: "name",
+      key: "name",
     },
     {
       title: "Email",
@@ -190,13 +265,8 @@ const DataLeads = ({ name }) => {
     },
     {
       title: "Nomor Telepon",
-      dataIndex: "phone",
-      key: "phone",
-    },
-    {
-      title: "Notes",
-      dataIndex: "notes",
-      key: "notes",
+      dataIndex: "no_hp",
+      key: "no_hp",
     },
     {
       title: "Action",
@@ -207,75 +277,26 @@ const DataLeads = ({ name }) => {
             type="text"
             icon={<EditOutlined />}
             onClick={() => editLead(record)}
-          ></Button>
+          />
           <Button
             type="text"
             danger
             icon={<DeleteOutlined />}
-            onClick={() => deleteLead(record.key)}
-          ></Button>
+            onClick={() => deleteLead(record.id_leads)}
+          />
         </Space>
       ),
     },
   ];
 
-  // Fungsi untuk menangani perubahan file
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    setSelectedFile(file);
-    setIsUploading(file ? true : false); // Enable upload mode if a file is selected
-  };
-
-  // Fungsi untuk menangani pengunggahan file
-  const handleUpload = () => {
-    if (selectedFile) {
-      confirm({
-        title: "Konfirmasi Unggah File",
-        content: `Apakah Anda yakin ingin mengunggah file "${selectedFile.name}"?`,
-        okText: "Ya",
-        cancelText: "Tidak",
-        onOk: () => {
-          // Tambahkan logika pengunggahan file ke server di sini
-          console.log("Uploading:", selectedFile.name);
-          setSelectedFile(null); // Clear the selected file
-          setIsUploading(false); // Disable upload mode
-          setIsModalVisible(false); // Hide the modal
-        },
-      });
-    } else {
-      console.log("No file selected");
-    }
-  };
-
-  // Row selection for checkbox
-  const rowSelection = {
-    onChange: (selectedRowKeys, selectedRows) => {
-      console.log(
-        `Selected Row Keys: ${selectedRowKeys}`,
-        "Selected Rows: ",
-        selectedRows
-      );
-    },
-  };
-
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      {/* Sidebar */}
-      <Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        style={{
-          background: "#fff",
-        }}
-      >
+      <Sider trigger={null} collapsible collapsed={collapsed} style={{ background: "#fff" }}>
         <SidebarMenu collapsed={collapsed} name={name} />
       </Sider>
 
-      {/* Layout */}
       <Layout className="site-layout">
-        {/* Header with Toggle Button */}
-        <Header className="bg-light sticky-top px-4 shadow-sm">
+      <Header className="bg-light sticky-top px-4 shadow-sm">
           <div className="d-flex align-items-center">
             <Button
               type="text"
@@ -298,42 +319,34 @@ const DataLeads = ({ name }) => {
           </div>
         </Header>
 
-        {/* Main Content */}
-        <Content
-          className={`site-layout-background ${
-            collapsed ? "content-collapsed" : "content-expanded"
-          }`}
-          style={{
-            padding: 0,
-            minHeight: 280,
-          }}
-        >
-          <Table
-            rowSelection={rowSelection}
-            columns={columns}
-            dataSource={currentData}
-            pagination={false}
-            rowKey="key"
-            style={{ marginTop: 10 }}
-            className="custom-table"
-            title={() => (
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <Input.Search placeholder="Cari" className="me-3 " />
-                <Space>
-                  <Button icon={<DownloadOutlined />}>Export Data</Button>
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={showAddModal}
-                  >
-                    Tambah
-                  </Button>
-                </Space>
-              </div>
-            )}
-          />
+        <Content className="site-layout-background" style={{ margin: "24px 16px", padding: 24, minHeight: 280 }}>
+          <Spin spinning={loading}>
+            <Table
+              rowSelection={rowSelection}
+              columns={columns}
+              dataSource={currentData}
+              pagination={false}
+              rowKey="id_leads"
+              style={{ marginTop: 0 }}
+              className="custom-table"
+              title={() => (
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <Input.Search 
+                    placeholder="Cari" 
+                    onSearch={handleSearch} 
 
-          {/* Custom Pagination with Total Records */}
+                    className="me-3"
+                  />
+                  <Space>
+                    <Button icon={<DownloadOutlined />}>Export Data</Button>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+                      Tambah
+                    </Button>
+                  </Space>
+                </div>
+              )}
+            />
+
           <Row className="mt-4" justify="space-between" align="middle">
             <Col>
               <nav aria-label="Page navigation example">
@@ -392,30 +405,18 @@ const DataLeads = ({ name }) => {
               {leadsData.length} records
             </div>
           </Row>
+          </Spin>
         </Content>
       </Layout>
 
-      {/* Modal for Add/Edit Lead */}
       <Modal
         open={isModalVisible}
         onCancel={handleCancel}
         footer={[
-          <Button
-            key="cancel"
-            onClick={handleCancel}
-            className="custom-btn-cancel"
-            style={{ backgroundColor: "#F0F5FF", color: "#0549CF" }}
-          >
+          <Button key="cancel" onClick={handleCancel} className="custom-btn-cancel" style={{ backgroundColor: "#F0F5FF", color: "#0549CF" }}>
             Tidak
           </Button>,
-          <Button
-            key="ok"
-            type="primary"
-            onClick={handleOk}
-            className="custom-btn-ok"
-            style={{ backgroundColor: "#0549CF" }}
-            disabled={!isManualInput} // Disable button if input method is XLS
-          >
+          <Button key="ok" type="primary" onClick={handleOk} className="custom-btn-ok" style={{ backgroundColor: "#0549CF" }}>
             {editingKey ? "Simpan" : "Tambah"}
           </Button>,
         ]}
@@ -423,22 +424,15 @@ const DataLeads = ({ name }) => {
         <div className="container">
           <div className="row align-items-center">
             <div className="col-12">
-              <div
-                className={`d-flex justify-content-center align-items-center rounded-circle`}
-                style={{
-                  width: "50px",
-                  height: "50px",
-                  backgroundColor: editingKey ? "#F0F5FF" : "#F0F5FF",
-                }}
-              >
+              <div className="d-flex justify-content-center align-items-center rounded-circle" style={{
+                width: "50px",
+                height: "50px",
+                backgroundColor: editingKey ? "#F0F5FF" : "#F0F5FF",
+              }}>
                 {editingKey ? (
-                  <EditOutlined
-                    style={{ fontSize: "26px", color: "#0549CF" }}
-                  />
+                  <EditOutlined style={{ fontSize: "26px", color: "#0549CF" }} />
                 ) : (
-                  <UserAddOutlined
-                    style={{ fontSize: "26px", color: "#0549CF" }}
-                  />
+                  <UserAddOutlined style={{ fontSize: "26px", color: "#0549CF" }} />
                 )}
               </div>
             </div>
@@ -452,35 +446,28 @@ const DataLeads = ({ name }) => {
             </div>
           </div>
 
-          <Form
-            form={form}
-            layout="vertical"
-            initialValues={{ remember: true }}
-          >
-            {/* Conditionally render the input method dropdown */}
-            {!editingKey && ( // Only show dropdown when not editing
-              <Form.Item label="Input Data">
-                <Select
-                  value={isManualInput ? "Manual" : "XLS"}
-                  onChange={(value) => setIsManualInput(value === "Manual")}
-                >
-                  <Select.Option value="Manual">Manual</Select.Option>
-                  <Select.Option value="XLS">XLS</Select.Option>
-                </Select>
-              </Form.Item>
-            )}
+          <Form form={form} layout="vertical" initialValues={{ remember: true }}>
+            <Form.Item label="Input Data">
+              <Select
+                value={isManualInput ? "Manual" : "XLS"}
+                onChange={(value) => setIsManualInput(value === "Manual")}
+              >
+                <Select.Option value="Manual">Manual</Select.Option>
+                <Select.Option value="XLS">XLS</Select.Option>
+              </Select>
+            </Form.Item>
 
             {isManualInput ? (
               <>
                 <Form.Item
                   label="PIC Leads"
-                  name="pic"
+                  name="id_users"
                   rules={[{ required: true, message: "Pilih PIC Leads" }]}
                 >
-                  <Select placeholder="Pilih PIC Leads">
-                    {picMembers.map((member) => (
-                      <Select.Option key={member.value} value={member.value}>
-                        {member.label}
+                  <Select>
+                    {PICData.map(pic => (
+                      <Select.Option key={pic.id_users} value={pic.id_users}>
+                        {pic.name}
                       </Select.Option>
                     ))}
                   </Select>
@@ -488,45 +475,20 @@ const DataLeads = ({ name }) => {
 
                 <Form.Item
                   label="Leads Status"
-                  name="leadsStatus"
+                  name="name_status"
                   rules={[{ required: true, message: "Pilih status leads" }]}
                 >
                   <Select>
-                    <Select.Option value="Hot">Hot</Select.Option>
-                    <Select.Option value="Warm">Warm</Select.Option>
-                    <Select.Option value="Cool">Cool</Select.Option>
-                  </Select>
-                </Form.Item>
-
-                <Form.Item
-                  label="Jenis Perusahaan"
-                  name="jenis"
-                  rules={[
-                    { required: true, message: "Pilih jenis perusahaan" },
-                  ]}
-                >
-                  <Select placeholder="Pilih Jenis Perusahaan">
-                    <Select.Option value="Government">Government</Select.Option>
-                    <Select.Option value="Local Company">
-                      Local Company
-                    </Select.Option>
+                    <Select.Option value="3">Hot</Select.Option>
+                    <Select.Option value="2">Warm</Select.Option>
+                    <Select.Option value="1">Cold</Select.Option>
                   </Select>
                 </Form.Item>
 
                 <Form.Item
                   label="Nama Instansi/Lembaga"
-                  name="company"
-                  rules={[
-                    { required: true, message: "Masukkan nama perusahaan" },
-                  ]}
-                >
-                  <Input />
-                </Form.Item>
-
-                <Form.Item
-                  label="Nama Kontak"
-                  name="nama_kontak"
-                  rules={[{ required: true, message: "Masukkan nama kontak" }]}
+                  name="nama_instansi"
+                  rules={[{ required: true, message: "Masukkan nama instansi/lembaga" }]}
                 >
                   <Input />
                 </Form.Item>
@@ -534,42 +496,33 @@ const DataLeads = ({ name }) => {
                 <Form.Item
                   label="Email"
                   name="email"
-                  rules={[{ required: true, message: "Masukkan alamat email" }]}
+                  rules={[{ required: true, message: "Masukkan alamat email", type: "email" }]}
                 >
                   <Input />
                 </Form.Item>
 
                 <Form.Item
                   label="Nomor Telepon"
-                  name="phone"
-                  rules={[
-                    { required: true, message: "Masukkan nomor telepon" },
-                  ]}
+                  name="no_hp"
+                  rules={[{ required: true, message: "Masukkan nomor telepon" }]}
                 >
                   <Input />
                 </Form.Item>
-
-                <Form.Item label="Notes" name="notes">
-                  <Input.TextArea rows={4} />
-                </Form.Item>
               </>
             ) : (
-              <div
-                className="d-flex flex-column justify-content-center align-items-center"
-                style={{
-                  border: "2px dashed #d9d9d9",
-                  padding: "20px",
-                  height: "200px",
-                  textAlign: "center",
-                }}
-              >
+              <div className="d-flex flex-column justify-content-center align-items-center" style={{
+                border: "2px dashed #d9d9d9",
+                padding: "20px",
+                height: "200px",
+                textAlign: "center",
+              }}>
                 <input
                   type="file"
                   accept=".xls,.xlsx"
                   onChange={handleFileChange}
                   className="mb-3"
                 />
-                <Button type="primary" onClick={handleUpload}>
+                <Button type="primary" onClick={handleUpload} loading={isUploading}>
                   Unggah Dokumen
                 </Button>
                 {selectedFile && (
@@ -586,4 +539,4 @@ const DataLeads = ({ name }) => {
   );
 };
 
-export default DataLeads;
+export default DataLeads
