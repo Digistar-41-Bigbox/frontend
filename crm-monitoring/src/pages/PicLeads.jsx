@@ -21,6 +21,7 @@ import {
   UserAddOutlined,
 } from "@ant-design/icons";
 import "../style/PicLeads.css";
+import { useAuth } from "../context/AuthContext";
 import SidebarMenu from "../components/SidebarMenu";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -57,6 +58,7 @@ const PicLeads = ({ name }) => {
   const [isManualInput, setIsManualInput] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const { userInfo = { name: "" } } = useAuth();
 
   const picMembers = [
     { value: "Shinta Dewi", label: "Shinta Dewi" },
@@ -228,116 +230,131 @@ const PicLeads = ({ name }) => {
       {/* Layout */}
       <Layout className="site-layout">
         {/* Header with Toggle Button */}
-        <Header
-          className="site-layout-background "
-          style={{
-            padding: "0 20px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={toggleSidebar}
-            style={{ fontSize: "18px", width: 64, height: 64 }}
-          />
-          <span className="welcome-text">Welcome back, {name}!</span>
+        <Header className="bg-light sticky-top px-4 shadow-sm">
+          <div className="d-flex align-items-center">
+            <Button
+              type="text"
+              className="btn btn-link"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={toggleSidebar}
+              style={{
+                fontSize: "18px",
+                width: "64px",
+                height: "64px",
+              }}
+            />
+
+            <div className="ms-3 d-flex flex-column justify-content-center">
+              {/* Nama pengguna */}
+              <h1 className="h4 fw-semibold mb-0">
+                Welcome back, {userInfo?.name || "John Doe"}!
+              </h1>
+            </div>
+          </div>
         </Header>
 
         {/* Main Content */}
         <Content
-          className="site-layout-background"
-          style={{ margin: "24px 16px", padding: 24, minHeight: 280 }}
+          className={`site-layout-background ${
+            collapsed ? "content-collapsed" : "content-expanded"
+          }`}
+          style={{
+            padding: 0,
+            minHeight: 280,
+          }}
         >
-          <Table
-            rowSelection={rowSelection}
-            columns={columns}
-            dataSource={currentData}
-            pagination={false}
-            className="custom-table"
-            rowKey="key"
-            title={() => (
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <Input.Search placeholder="Cari" className="me-3" />
-                <Space>
-                  <Button icon={<DownloadOutlined />}>Export Data</Button>
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={showAddModal}
-                  >
-                    Tambah
-                  </Button>
-                </Space>
-              </div>
-            )}
-          />
-
-          {/* Custom Pagination with Total Records */}
-          <Row className="mt-4" justify="space-between" align="middle">
-            {/* Pagination on the left */}
-            <Col>
-              <nav aria-label="Page navigation example">
-                <ul className="pagination">
-                  <li
-                    className={`page-item ${
-                      currentPage === 1 ? "disabled" : ""
-                    }`}
-                  >
-                    <a
-                      className="page-link"
-                      href="#"
-                      aria-label="Previous"
-                      onClick={() => handlePageChange(currentPage - 1)}
+          <div className="container-fluid m-0 p-0">
+            <Table
+              rowSelection={rowSelection}
+              columns={columns}
+              dataSource={currentData}
+              pagination={false}
+              style={{ marginTop: 10 }}
+              className="custom-table"
+              rowKey="key"
+              title={() => (
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <Input.Search placeholder="Cari" className="me-3" />
+                  <Space>
+                    <Button icon={<DownloadOutlined />}>Export Data</Button>
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={showAddModal}
                     >
-                      <span aria-hidden="true">&laquo;</span>
-                    </a>
-                  </li>
-                  {[...Array(totalPages)].map((_, index) => (
+                      Tambah
+                    </Button>
+                  </Space>
+                </div>
+              )}
+            />
+
+            {/* Custom Pagination with Total Records */}
+            <Row className="mt-4" justify="space-between" align="middle">
+              {/* Pagination on the left */}
+              <Col>
+                <nav aria-label="Page navigation example">
+                  <ul className="pagination">
                     <li
-                      key={index + 1}
                       className={`page-item ${
-                        index + 1 === currentPage ? "active" : ""
+                        currentPage === 1 ? "disabled" : ""
                       }`}
                     >
                       <a
                         className="page-link"
                         href="#"
-                        onClick={() => handlePageChange(index + 1)}
+                        aria-label="Previous"
+                        onClick={() => handlePageChange(currentPage - 1)}
                       >
-                        {index + 1}
+                        <span aria-hidden="true">&laquo;</span>
                       </a>
                     </li>
-                  ))}
-                  <li
-                    className={`page-item ${
-                      currentPage === totalPages ? "disabled" : ""
-                    }`}
-                  >
-                    <a
-                      className="page-link"
-                      href="#"
-                      aria-label="Next"
-                      onClick={() => handlePageChange(currentPage + 1)}
+                    {[...Array(totalPages)].map((_, index) => (
+                      <li
+                        key={index + 1}
+                        className={`page-item ${
+                          index + 1 === currentPage ? "active" : ""
+                        }`}
+                      >
+                        <a
+                          className="page-link"
+                          href="#"
+                          onClick={() => handlePageChange(index + 1)}
+                        >
+                          {index + 1}
+                        </a>
+                      </li>
+                    ))}
+                    <li
+                      className={`page-item ${
+                        currentPage === totalPages ? "disabled" : ""
+                      }`}
                     >
-                      <span aria-hidden="true">&raquo;</span>
-                    </a>
-                  </li>
-                </ul>
-              </nav>
-            </Col>
+                      <a
+                        className="page-link"
+                        href="#"
+                        aria-label="Next"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                      >
+                        <span aria-hidden="true">&raquo;</span>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </Col>
 
-            {/* Show total records on the right */}
-            <Col>
-              <div>
-                Displaying {itemsPerPage * (currentPage - 1) + 1} -{" "}
-                {Math.min(itemsPerPage * currentPage, leadsData.length)} of{" "}
-                {leadsData.length} records
-              </div>
-            </Col>
-          </Row>
+              {/* Show total records on the right */}
+              <Col>
+                <div>
+                  Displaying {itemsPerPage * (currentPage - 1) + 1} -{" "}
+                  {Math.min(itemsPerPage * currentPage, leadsData.length)} of{" "}
+                  {leadsData.length} records
+                </div>
+              </Col>
+            </Row>
+          </div>
         </Content>
       </Layout>
 
@@ -366,7 +383,7 @@ const PicLeads = ({ name }) => {
           </Button>,
         ]}
       >
-        <div className="container">
+        <div className="container ">
           <div className="row align-items-center">
             <div className="col-12">
               <div

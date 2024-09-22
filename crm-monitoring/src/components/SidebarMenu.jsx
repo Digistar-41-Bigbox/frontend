@@ -20,11 +20,10 @@ const SidebarMenu = ({ collapsed, name = "User" }) => {
   const menuItems = [
     // Dashboard for user and admin
     {
-      key: userRole === "admin" ? "/admin-dashboard" : "/user-dashboard",
+      key: "/admin-dashboard",
       icon: <HomeOutlined />,
       label: "Dashboard",
-      onClick: () =>
-        navigate(userRole === "admin" ? "/admin-dashboard" : "/user-dashboard"),
+      onClick: () => navigate("/admin-dashboard"),
     },
     {
       key: "/data-leads",
@@ -56,7 +55,7 @@ const SidebarMenu = ({ collapsed, name = "User" }) => {
     <div
       className="d-flex flex-column vh-100 position-fixed"
       style={{
-        width: collapsed ? "80px" : "210px",
+        width: collapsed ? "80px" : "200px",
         transition: "width 0.3s ease",
         overflow: "hidden",
         zIndex: 1000,

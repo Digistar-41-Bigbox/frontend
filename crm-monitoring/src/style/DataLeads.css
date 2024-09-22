@@ -2,3 +2,26 @@
   background-color: #f0f5ff; /* Warna biru */
   color: #0549cf; /* Warna teks putih */
 }
+
+/* Atur margin content saat sidebar collapsed */
+.site-layout-background {
+  margin-top: 24px;
+}
+.content-collapsed {
+  margin-left: 10px; /* Sesuaikan sesuai ukuran sidebar collapsed */
+  transition: margin-left 0.2s ease-in-out;
+}
+
+/* Atur margin content saat sidebar tidak collapsed */
+.content-expanded {
+  margin-left: 30px; /* Sesuaikan sesuai ukuran sidebar normal */
+  transition: margin-left 0.2s ease-in-out;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .content-collapsed,
+  .content-expanded {
+    margin-left: 0; /* Sidebar will be stacked or hidden on small screens */
+  }
+}
